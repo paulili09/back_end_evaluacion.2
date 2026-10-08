@@ -17,21 +17,17 @@ def crear_venta(request):
         form = VentaForm(request.POST)
         formset = DetalleVentaFormSet(request.POST)
         if form.is_valid() and formset.is_valid():
-            venta = form.save(commit=False)
-            venta.total = 0
-            venta.save()
+            venta = form.save()  # Se guarda la venta (sin asignar venta.total)
             
             detalles = formset.save(commit=False)
-            total_calculado = 0
             for detalle in detalles:
                 detalle.venta = venta
                 if not detalle.precio_unitario and detalle.producto:
                     detalle.precio_unitario = detalle.producto.precio
-                total_calculado += detalle.cantidad * detalle.precio_unitario
                 detalle.save()
             
-            venta.total = total_calculado
-            venta.save()
+            # Se eliminó la línea "venta.total = total_calculado"
+            # El total se calcula solo al consultar el modelo mediante @property
 
             messages.success(request, f"¡Venta #{venta.id} registrada con éxito!")
             return redirect('lista_ventas')
