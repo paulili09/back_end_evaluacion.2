@@ -6,7 +6,7 @@ class VentaForm(forms.ModelForm):
         model = Venta
         fields = ['cliente']
         widgets = {
-            'cliente': forms.Select(),
+            'cliente': forms.TextInput(attrs={'placeholder': 'Escribe el nombre del cliente...'}),
         }
 
 class DetalleVentaForm(forms.ModelForm):
