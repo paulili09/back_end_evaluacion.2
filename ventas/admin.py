@@ -3,15 +3,17 @@ from django.core.exceptions import ValidationError
 from django.forms.models import BaseInlineFormSet
 from django.http import HttpResponse
 import csv
-from .models import Producto, Cliente, Venta, DetalleVenta
+from .models import Producto, Venta, DetalleVenta
 
-# 1. Branding del espacio Django Admin (Cumple requisito de la rúbrica)
 admin.site.site_header = "Control de Ventas – Tienda"
 admin.site.site_title = "Admin Ventas"
 admin.site.index_title = "Gestión de Productos y Registro de Ventas"
 
+@admin.register(Producto)
+class ProductoAdmin(admin.ModelAdmin):
+    list_display = ('id', 'nombre', 'precio', 'stock')
+    search_fields = ('nombre',)
 
-# 2. Validación de Inlines (Comprueba stock antes de guardar)
 class DetalleVentaInlineFormSet(BaseInlineFormSet):
     def clean(self):
         super().clean()
@@ -23,8 +25,6 @@ class DetalleVentaInlineFormSet(BaseInlineFormSet):
             if prod and cant and cant > prod.stock:
                 raise ValidationError(f"Stock insuficiente para {prod.nombre}")
 
-
-# 3. Inline para Detalle de Venta
 class DetalleVentaInline(admin.TabularInline):
     model = DetalleVenta
     extra = 1
@@ -32,8 +32,6 @@ class DetalleVentaInline(admin.TabularInline):
     fields = ('producto', 'cantidad', 'precio_unitario', 'subtotal')
     readonly_fields = ("subtotal",)
 
-
-# 4. Acción para reporte básico en CSV (Cumple reporte/exportación del Admin)
 @admin.action(description="Exportar ventas seleccionadas a CSV (Reporte)")
 def exportar_ventas_csv(modeladmin, request, queryset):
     response = HttpResponse(content_type='text/csv')
@@ -45,8 +43,6 @@ def exportar_ventas_csv(modeladmin, request, queryset):
         writer.writerow([v.id, cliente_nombre, v.fecha.strftime("%d/%m/%Y %H:%M"), v.total])
     return response
 
-
-# 5. Configuración del Admin de Venta
 @admin.register(Venta)
 class VentaAdmin(admin.ModelAdmin):
     list_display = ('id', 'cliente', 'fecha', 'total')
