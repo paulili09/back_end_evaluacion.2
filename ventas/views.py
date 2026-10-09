@@ -7,6 +7,7 @@ from .forms import VentaForm, DetalleVentaFormSet
 def lista_ventas(request):
     ventas_list = Venta.objects.all().order_by('-fecha')
     
+    # Paginación (5 ventas por página para cumplir rúbrica)
     paginator = Paginator(ventas_list, 5)
     page_number = request.GET.get('page')
     ventas = paginator.get_page(page_number)
@@ -17,27 +18,19 @@ def crear_venta(request):
     if request.method == 'POST':
         form = VentaForm(request.POST)
         formset = DetalleVentaFormSet(request.POST)
+        
         if form.is_valid() and formset.is_valid():
-            venta = form.save()  # Se guarda la venta (sin asignar venta.total)
-            
-            detalles = formset.save(commit=False)
-            for detalle in detalles:
-                detalle.venta = venta
-                if not detalle.precio_unitario and detalle.producto:
-                    detalle.precio_unitario = detalle.producto.precio
-                detalle.save()
-            
-            # Se eliminó la línea "venta.total = total_calculado"
-            # El total se calcula solo al consultar el modelo mediante @property
-
-            messages.success(request, f"¡Venta #{venta.id} registrada con éxito!")
+            venta = form.save()
+            formset.instance = venta
+            formset.save()
+            messages.success(request, '¡La venta ha sido registrada con éxito!')
             return redirect('lista_ventas')
         else:
-            messages.error(request, "Por favor corrige los errores del formulario.")
+            messages.error(request, 'Por favor corrige los errores del formulario.')
     else:
         form = VentaForm()
         formset = DetalleVentaFormSet()
-
+        
     return render(request, 'ventas/crear_venta.html', {
         'form': form,
         'formset': formset
@@ -45,8 +38,6 @@ def crear_venta(request):
 
 def eliminar_venta(request, pk):
     venta = get_object_or_404(Venta, pk=pk)
-    if request.method == 'POST':
-        venta.delete()
-        messages.success(request, f"Venta #{pk} eliminada correctamente.")
-        return redirect('lista_ventas')
-    return render(request, 'ventas/confirmar_eliminar.html', {'venta': venta})
+    venta.delete()
+    messages.success(request, 'Venta eliminada correctamente.')
+    return redirect('lista_ventas')
