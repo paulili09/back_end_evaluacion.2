@@ -7,6 +7,7 @@ from .forms import VentaForm, DetalleVentaFormSet
 def lista_ventas(request):
     ventas_list = Venta.objects.all().order_by('-fecha')
     
+    # Paginación (5 ventas por página para la rúbrica)
     paginator = Paginator(ventas_list, 5)
     page_number = request.GET.get('page')
     ventas = paginator.get_page(page_number)
@@ -17,6 +18,7 @@ def crear_venta(request):
     if request.method == 'POST':
         form = VentaForm(request.POST)
         formset = DetalleVentaFormSet(request.POST)
+        
         if form.is_valid() and formset.is_valid():
             venta = form.save()
             
