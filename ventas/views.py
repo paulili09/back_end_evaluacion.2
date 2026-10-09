@@ -1,20 +1,17 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.forms import inlineformset_factory
-from .models import Venta, DetalleVenta
-from .forms import VentaForm, DetalleVentaForm
-
-DetalleVentaFormSet = inlineformset_factory(
-    Venta, DetalleVenta, form=DetalleVentaForm, extra=1, can_delete=False
-)
+from django.core.paginator import Paginator
+from .models import Venta
+from .forms import VentaForm, DetalleVentaFormSet
 
 def lista_ventas(request):
-    ventas = Venta.objects.all().order_by('-fecha')
-   # Paginación exigida por la pauta
+    ventas_list = Venta.objects.all().order_by('-fecha')
+    
     paginator = Paginator(ventas_list, 5)
     page_number = request.GET.get('page')
     ventas = paginator.get_page(page_number)
-    return render(request, 'ventas/listas_ventas.html', {'ventas': ventas})
+    
+    return render(request, 'ventas/lista_ventas.html', {'ventas': ventas})
 
 def crear_venta(request):
     if request.method == 'POST':
