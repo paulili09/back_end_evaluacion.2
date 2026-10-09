@@ -1,12 +1,16 @@
 from django import forms
-from .models import Venta, DetalleVenta, Cliente, Producto
+from .models import Venta, DetalleVenta
+from django.forms import inlineformset_factory
 
 class VentaForm(forms.ModelForm):
     class Meta:
         model = Venta
         fields = ['cliente']
         widgets = {
-            'cliente': forms.TextInput(attrs={'placeholder': 'Escribe el nombre del cliente...'}),
+            'cliente': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Nombre del cliente (Opcional)'
+            }),
         }
 
 class DetalleVentaForm(forms.ModelForm):
@@ -14,24 +18,15 @@ class DetalleVentaForm(forms.ModelForm):
         model = DetalleVenta
         fields = ['producto', 'cantidad', 'precio_unitario']
         widgets = {
-            'producto': forms.Select(),
-            'cantidad': forms.NumberInput(attrs={'min': 1, 'value': 1}),
-            'precio_unitario': forms.NumberInput(attrs={'step': '0.01'}),
+            'producto': forms.Select(attrs={'class': 'form-control'}),
+            'cantidad': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'precio_unitario': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
         }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # El campo de precio unitario no es obligatorio en la interfaz
-        self.fields['precio_unitario'].required = False
-
-    def clean(self):
-        cleaned_data = super().clean()
-        producto = cleaned_data.get('producto')
-        precio_unitario = cleaned_data.get('precio_unitario')
-
-        # Si el usuario no ingresó un precio, se asigna automáticamente el del producto seleccionado
-        if producto and not precio_unitario:
-            cleaned_data['precio_unitario'] = producto.precio
-            self.cleaned_data['precio_unitario'] = producto.precio
-            
-        return cleaned_data
+DetalleVentaFormSet = inlineformset_factory(
+    Venta, 
+    DetalleVenta, 
+    form=DetalleVentaForm,
+    extra=1,
+    can_delete=True
+)

@@ -7,7 +7,7 @@ from .forms import VentaForm, DetalleVentaFormSet
 def lista_ventas(request):
     ventas_list = Venta.objects.all().order_by('-fecha')
     
-    # Paginación (5 ventas por página para la rúbrica)
+    # Paginación requerida por la rúbrica (5 por página)
     paginator = Paginator(ventas_list, 5)
     page_number = request.GET.get('page')
     ventas = paginator.get_page(page_number)
