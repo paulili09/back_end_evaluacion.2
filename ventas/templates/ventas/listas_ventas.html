@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Historial de Ventas</title>
+    <title>Sistema de Control de Ventas</title>
     <style>
         * {
             box-sizing: border-box;
@@ -13,17 +13,40 @@
         }
 
         body {
-            background-color: #f8fafc;
-            color: #1e293b;
-            padding: 40px 20px;
+            background-color: #f1f5f9;
+            color: #0f172a;
+            min-height: 100vh;
+        }
+
+        /* Navbar Superior */
+        .navbar {
+            background-color: #1e293b;
+            color: #ffffff;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .container {
-            max-width: 1000px;
-            margin: 0 auto;
+            max-width: 1100px;
+            margin: 32px auto;
+            padding: 0 20px;
         }
 
-        .header {
+        /* Encabezado y Acciones */
+        .page-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -32,67 +55,110 @@
             gap: 16px;
         }
 
-        .header h1 {
-            font-size: 26px;
+        .page-header h1 {
+            font-size: 24px;
             font-weight: 700;
             color: #0f172a;
         }
 
-        .header-actions {
-            display: flex;
-            gap: 10px;
+        .page-header p {
+            font-size: 14px;
+            color: #64748b;
+            margin-top: 2px;
         }
 
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Botones Estilizados */
         .btn {
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            padding: 9px 18px;
+            gap: 8px;
+            padding: 10px 18px;
             font-size: 14px;
             font-weight: 600;
-            border-radius: 6px;
+            border-radius: 8px;
             text-decoration: none;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
             border: none;
         }
 
         .btn-primary {
             background-color: #2563eb;
             color: #ffffff;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
         }
 
         .btn-primary:hover {
             background-color: #1d4ed8;
+            transform: translateY(-1px);
         }
 
         .btn-outline {
             background-color: #ffffff;
-            color: #475569;
+            color: #334155;
             border: 1px solid #cbd5e1;
         }
 
         .btn-outline:hover {
-            background-color: #f1f5f9;
-            color: #0f172a;
+            background-color: #f8fafc;
+            border-color: #94a3b8;
         }
 
         .btn-danger {
-            background-color: #ef4444;
-            color: #ffffff;
+            background-color: #fee2e2;
+            color: #dc2626;
+            border: 1px solid #fca5a5;
             padding: 6px 12px;
             font-size: 13px;
         }
 
         .btn-danger:hover {
-            background-color: #dc2626;
+            background-color: #ef4444;
+            color: #ffffff;
         }
 
-        .card {
+        /* Tarjetas de Estadísticas (KPIs) */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
             background: #ffffff;
             border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .stat-card .label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #64748b;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card .value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-top: 6px;
+        }
+
+        /* Tabla de Resultados */
+        .card-table {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
             overflow: hidden;
         }
 
@@ -111,15 +177,15 @@
             background-color: #f8fafc;
             color: #475569;
             font-size: 12px;
-            font-weight: 600;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            padding: 14px 18px;
+            padding: 16px 20px;
             border-bottom: 1px solid #e2e8f0;
         }
 
         td {
-            padding: 14px 18px;
+            padding: 16px 20px;
             font-size: 14px;
             border-bottom: 1px solid #f1f5f9;
             vertical-align: middle;
@@ -137,14 +203,14 @@
             font-weight: 600;
             color: #2563eb;
             background-color: #eff6ff;
-            padding: 4px 8px;
-            border-radius: 4px;
+            padding: 4px 10px;
+            border-radius: 6px;
             font-size: 13px;
         }
 
         .cliente-text {
-            font-weight: 500;
-            color: #0f172a;
+            font-weight: 600;
+            color: #1e293b;
         }
 
         .cliente-empty {
@@ -153,38 +219,119 @@
         }
 
         .price-text {
-            font-weight: 600;
+            font-weight: 700;
             color: #16a34a;
         }
 
-        .empty-state {
-            padding: 40px;
-            text-align: center;
+        /* Paginación */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background-color: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            font-size: 14px;
             color: #64748b;
+        }
+
+        .pagination-links {
+            display: flex;
+            gap: 6px;
+        }
+
+        .page-btn {
+            padding: 6px 12px;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            color: #334155;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .page-btn:hover {
+            background: #f1f5f9;
+        }
+
+        /* Mensajes Django */
+        .alert-messages {
+            margin-bottom: 20px;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .alert-success {
+            background-color: #dcfce7;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
         }
     </style>
 </head>
 <body>
 
+<!-- Navbar Superior -->
+<div class="navbar">
+    <div class="navbar-brand">
+        📊 Control de Ventas
+    </div>
+    <a href="/admin/" class="btn btn-outline" style="font-size: 13px; padding: 6px 14px;" target="_blank">Panel Administrador</a>
+</div>
+
 <div class="container">
-    <div class="header">
-        <h1>Historial de Ventas</h1>
+
+    <!-- Mensajes de Feedback -->
+    {% if messages %}
+        <div class="alert-messages">
+            {% for message in messages %}
+                <div class="alert alert-success">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Header Principal -->
+    <div class="page-header">
+        <div>
+            <h1>Historial de Ventas</h1>
+            <p>Gestiona y revisa todas las transacciones realizadas en la tienda.</p>
+        </div>
         <div class="header-actions">
-            <a href="{% url 'crear_venta' %}" class="btn btn-primary">+ Registrar Venta</a>
-            <a href="/admin/" class="btn btn-outline" target="_blank">Ir al Panel Admin</a>
+            <a href="{% url 'crear_venta' %}" class="btn btn-primary">+ Nueva Venta</a>
         </div>
     </div>
 
-    <div class="card">
+    <!-- Resumen / Estadísticas -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="label">Total Registros</div>
+            <div class="value">{{ ventas.paginator.count|default:ventas|length }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Estado del Sistema</div>
+            <div class="value" style="color: #16a34a; font-size: 16px;">● Operativo</div>
+        </div>
+    </div>
+
+    <!-- Tabla Principal -->
+    <div class="card-table">
         <div class="table-responsive">
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 10%;">ID</th>
-                        <th style="width: 35%;">Cliente</th>
-                        <th style="width: 25%;">Fecha</th>
-                        <th style="width: 15%;">Total</th>
-                        <th style="width: 15%; text-align: center;">Acciones</th>
+                        <th style="width: 12%;">N° Orden</th>
+                        <th style="width: 38%;">Cliente</th>
+                        <th style="width: 25%;">Fecha y Hora</th>
+                        <th style="width: 15%;">Monto Total</th>
+                        <th style="width: 10%; text-align: center;">Acción</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -198,7 +345,7 @@
                                     <span class="cliente-empty">Sin especificar</span>
                                 {% endif %}
                             </td>
-                            <td>{{ venta.fecha|date:"d/m/Y H:i" }}</td>
+                            <td>{{ venta.fecha|date:"d/m/Y H:i" }} hrs</td>
                             <td><span class="price-text">${{ venta.total }}</span></td>
                             <td style="text-align: center;">
                                 <a href="{% url 'eliminar_venta' venta.id %}" class="btn btn-danger">Eliminar</a>
@@ -206,15 +353,32 @@
                         </tr>
                     {% empty %}
                         <tr>
-                            <td colspan="5" class="empty-state">
-                                No se han registrado ventas todavía.
+                            <td colspan="5" style="text-align: center; padding: 40px; color: #64748b;">
+                                No hay ventas registradas actualmente.
                             </td>
                         </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+
+        <!-- Paginación -->
+        {% if ventas.has_other_pages %}
+            <div class="pagination-container">
+                <div>Mostrando página {{ ventas.number }} de {{ ventas.paginator.num_pages }}</div>
+                <div class="pagination-links">
+                    {% if ventas.has_previous %}
+                        <a href="?page={{ ventas.previous_page_number }}" class="page-btn">&laquo; Anterior</a>
+                    {% endif %}
+                    
+                    {% if ventas.has_next %}
+                        <a href="?page={{ ventas.next_page_number }}" class="page-btn">Siguiente &raquo;</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
     </div>
+
 </div>
 
 </body>
