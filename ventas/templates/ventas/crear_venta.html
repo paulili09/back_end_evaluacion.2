@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registrar Nueva Venta</title>
+    <title>{% if es_edicion %}Editar venta{% else %}Nueva venta{% endif %} | Punto Norte</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -103,11 +103,12 @@
             margin-bottom: 20px;
         }
     </style>
+    {% load static %}<link rel="stylesheet" href="{% static 'ventas/app.css' %}">
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1 style="font-size: 1.5rem; margin: 0;">🛒 Registrar Nueva Venta</h1>
+            <h1 style="font-size: 1.5rem; margin: 0;">{% if es_edicion %}Editar Venta #{{ venta.id }}{% else %}Registrar Nueva Venta{% endif %}</h1>
             <a href="{% url 'lista_ventas' %}" class="btn btn-outline">← Volver al listado</a>
         </div>
 
@@ -127,6 +128,7 @@
                 <div class="form-group">
                     <label>Cliente</label>
                     {{ form.cliente }}
+                    {{ form.cliente.errors }}
                 </div>
 
                 <hr>
@@ -139,20 +141,28 @@
                         <div class="col-8">
                             <label>Producto</label>
                             {{ f.producto }}
+                            {{ f.producto.errors }}
                         </div>
                         <div class="col-4">
                             <label>Cantidad</label>
                             {{ f.cantidad }}
+                            {{ f.cantidad.errors }}
                         </div>
                         <div style="display: none;">
                             {{ f.precio_unitario }}
+                            {{ f.precio_unitario.errors }}
                         </div>
+                        {% if es_edicion and f.DELETE %}
+                            <div class="col-12">
+                                {{ f.DELETE }} <label style="display: inline;">Eliminar detalle</label>
+                            </div>
+                        {% endif %}
                     </div>
                 {% endfor %}
 
                 <div class="actions">
                     <a href="{% url 'lista_ventas' %}" class="btn btn-secondary">Cancelar</a>
-                    <button type="submit" class="btn btn-success">Guardar Venta</button>
+                    <button type="submit" class="btn btn-success">{% if es_edicion %}Guardar cambios{% else %}Guardar Venta{% endif %}</button>
                 </div>
             </form>
         </div>

@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Historial de Ventas</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Ventas | Punto Norte</title>
+    {% load static %}<link rel="stylesheet" href="{% static 'ventas/app.css' %}">
     <style>
         .btn-custom-blue {
             background-color: #0d6efd;
@@ -23,7 +23,10 @@
 </head>
 <body>
     <div class="container py-4">
-        <h1 class="mb-4">Historial de Ventas</h1>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">Historial de Ventas</h1>
+            <a href="{% url 'crear_venta' %}" class="btn btn-primary">Registrar venta</a>
+        </div>
 
         {% if messages %}
             {% for message in messages %}
@@ -33,6 +36,21 @@
                 </div>
             {% endfor %}
         {% endif %}
+
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-4">
+                <label for="fecha_inicio" class="form-label">Desde</label>
+                <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio }}" class="form-control">
+            </div>
+            <div class="col-md-4">
+                <label for="fecha_fin" class="form-label">Hasta</label>
+                <input type="date" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin }}" class="form-control">
+            </div>
+            <div class="col-md-4 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-dark">Filtrar</button>
+                <a href="{% url 'lista_ventas' %}" class="btn btn-outline-secondary">Limpiar</a>
+            </div>
+        </form>
 
         <table class="table table-bordered align-middle">
             <thead class="table-dark">
@@ -48,10 +66,11 @@
                 {% for venta in ventas %}
                     <tr>
                         <td><strong>#{{ venta.id }}</strong></td>
-                        <td>{{ venta.cliente.nombre }}</td>
+                        <td>{{ venta.cliente|default_if_none:"Cliente General" }}</td>
                         <td>{{ venta.fecha|date:"d/m/Y H:i" }}</td>
                         <td>${{ venta.total }}</td>
                         <td>
+                            <a href="{% url 'editar_venta' venta.pk %}" class="btn btn-sm btn-warning">Editar</a>
                             <a href="{% url 'eliminar_venta' venta.pk %}" class="btn btn-sm btn-danger">
                                 Eliminar
                             </a>
@@ -67,18 +86,22 @@
             </tbody>
         </table>
 
-        <!-- Botones azules en la ubicación original abajo a la izquierda -->
         <div class="mt-3">
-            <div class="mb-2">
-                <a href="{% url 'crear_venta' %}" class="btn-custom-blue">
-                    Registrar Venta
-                </a>
-            </div>
-            <div>
-                <a href="/admin/" class="btn-custom-blue" target="_blank">
-                    Ir al Panel Admin
-                </a>
-            </div>
+            {% if ventas.has_other_pages %}
+                <nav aria-label="Paginación de ventas">
+                    <ul class="pagination">
+                        {% if ventas.has_previous %}
+                            <li class="page-item"><a class="page-link" href="?page={{ ventas.previous_page_number }}&fecha_inicio={{ fecha_inicio }}&fecha_fin={{ fecha_fin }}">Anterior</a></li>
+                        {% endif %}
+                        <li class="page-item active"><span class="page-link">Página {{ ventas.number }} de {{ ventas.paginator.num_pages }}</span></li>
+                        {% if ventas.has_next %}
+                            <li class="page-item"><a class="page-link" href="?page={{ ventas.next_page_number }}&fecha_inicio={{ fecha_inicio }}&fecha_fin={{ fecha_fin }}">Siguiente</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+            <a href="{% url 'reporte_ventas' %}" class="btn btn-outline-primary">Ver reporte por fechas</a>
+            <a href="/admin/" class="btn btn-outline-secondary" target="_blank">Panel Admin</a>
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

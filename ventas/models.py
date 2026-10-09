@@ -1,4 +1,7 @@
 from django.db import models
+from decimal import Decimal
+
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 
 class Producto(models.Model): 
@@ -7,6 +10,10 @@ class Producto(models.Model):
     precio = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)]) 
     stock = models.PositiveIntegerField(default=0) 
     activo = models.BooleanField(default=True) 
+
+    def clean(self):
+        if self.precio is not None and self.precio < 0:
+            raise ValidationError({'precio': 'El precio no puede ser negativo.'})
 
     def __str__(self): 
         return f"{self.nombre} (${self.precio:,.0f})" 
@@ -26,7 +33,7 @@ class Venta(models.Model):
 
     @property 
     def total(self): 
-        return sum(d.subtotal for d in self.detalles.all()) 
+        return sum((d.subtotal for d in self.detalles.all()), Decimal('0.00'))
 
     def __str__(self): 
         cliente_str = self.cliente.nombre if self.cliente else "Cliente General"
@@ -43,7 +50,15 @@ class DetalleVenta(models.Model):
     def subtotal(self): 
         if self.precio_unitario and self.cantidad:
             return self.cantidad * self.precio_unitario
-        return 0
+        return Decimal('0.00')
+
+    def clean(self):
+        if self.producto_id and not self.producto.activo:
+            raise ValidationError({'producto': 'El producto seleccionado no está activo.'})
+        if self.producto_id and self.cantidad and self.cantidad > self.producto.stock:
+            raise ValidationError({
+                'cantidad': f'Stock insuficiente. Disponible: {self.producto.stock}.'
+            })
 
     def save(self, *args, **kwargs):
         # Asigna automáticamente el precio del producto si no viene especificado

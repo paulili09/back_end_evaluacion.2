@@ -1,4 +1,6 @@
 from django import forms
+from django.core.exceptions import ValidationError
+from django.forms.models import BaseInlineFormSet
 from .models import Venta, DetalleVenta, Cliente, Producto
 
 class VentaForm(forms.ModelForm):
@@ -27,11 +29,36 @@ class DetalleVentaForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         producto = cleaned_data.get('producto')
+        cantidad = cleaned_data.get('cantidad')
         precio_unitario = cleaned_data.get('precio_unitario')
 
-        # Si el usuario no ingresó un precio, se asigna automáticamente el del producto seleccionado
+        if producto and not producto.activo:
+            self.add_error('producto', 'El producto seleccionado no está activo.')
+
+        if producto and cantidad and cantidad > producto.stock:
+            self.add_error(
+                'cantidad',
+                f'Stock insuficiente. Disponible: {producto.stock}.',
+            )
+
         if producto and not precio_unitario:
             cleaned_data['precio_unitario'] = producto.precio
-            self.cleaned_data['precio_unitario'] = producto.precio
-            
+
         return cleaned_data
+
+
+class BaseDetalleVentaFormSet(BaseInlineFormSet):
+    def clean(self):
+        super().clean()
+        if any(self.errors):
+            return
+
+        productos = []
+        for form in self.forms:
+            if not form.cleaned_data or form.cleaned_data.get('DELETE'):
+                continue
+            producto = form.cleaned_data.get('producto')
+            if producto in productos:
+                raise ValidationError('No puedes repetir un producto en la misma venta.')
+            if producto:
+                productos.append(producto)
