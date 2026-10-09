@@ -10,6 +10,10 @@ DetalleVentaFormSet = inlineformset_factory(
 
 def lista_ventas(request):
     ventas = Venta.objects.all().order_by('-fecha')
+   # Paginación exigida por la pauta
+    paginator = Paginator(ventas_list, 5)
+    page_number = request.GET.get('page')
+    ventas = paginator.get_page(page_number)
     return render(request, 'ventas/listas_ventas.html', {'ventas': ventas})
 
 def crear_venta(request):
