@@ -1,0 +1,12 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Mark resolved files",
+			"type": "shell",
+			"command": "git add core/settings.py ventas/admin.py ventas/forms.py ventas/views.py ventas/templates/ventas/listas_ventas.html ventas/templates/ventas/crear_venta.html && git status --short",
+			"isBackground": false,
+			"problemMatcher": []
+		}
+	]
+}
