@@ -62,7 +62,7 @@ Para la presentación se deben mostrar capturas o una demostración de:
 - WhiteNoise para archivos estáticos.
 - Variables de entorno para secreto, debug, hosts, CSRF y base de datos.
 - Migraciones versionadas en `ventas/migrations/`.
-- Entrada WSGI preparada para Vercel en `api/index.py`.
+- Entrada WSGI preparada para Vercel en `core/wsgi.py`.
 
 ## 7. Comandos de verificación
 
