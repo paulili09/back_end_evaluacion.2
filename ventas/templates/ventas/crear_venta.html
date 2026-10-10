@@ -4,98 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% if es_edicion %}Editar venta{% else %}Nueva venta{% endif %} | Punto Norte</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'ventas/app.css' %}">
+    {% load static %}<link rel="stylesheet" href="{% static 'ventas/app.css' %}">
 </head>
 <body>
-    <div class="shell">
-        <header class="topbar">
-            <a href="{% url 'lista_ventas' %}" class="brand" aria-label="Volver al historial de ventas">
-                <span class="brand-mark" aria-hidden="true"><span class="bag-handle"></span><span class="bag-body">PN</span></span>
-                <span class="brand-copy"><strong>Punto Norte Market</strong><span>Tu tienda, más simple</span></span>
-            </a>
-            <nav class="topnav" aria-label="Navegación principal">
-                <a href="{% url 'lista_ventas' %}" class="active">Ventas</a>
-                <a href="{% url 'reporte_ventas' %}">Reportes</a>
-            </nav>
-        </header>
-
-        <main class="page">
-            <div class="page-head">
-                <div class="title-block">
-                    <span class="eyebrow">{% if es_edicion %}Actualizar pedido{% else %}Nueva compra{% endif %}</span>
-                    <h1>{% if es_edicion %}Editar pedido #{{ venta.id }}{% else %}Crear pedido{% endif %}</h1>
-                    <p class="lead">Completa los datos del cliente y agrega los productos que llevará.</p>
-                </div>
-                <a href="{% url 'lista_ventas' %}" class="btn btn-light">← Volver al historial</a>
-            </div>
-
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="flash error" role="alert">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-
-            <form method="post" class="form-layout">
-                {% csrf_token %}
-                <section class="panel form-panel">
-                    <div class="section-title">
-                        <span class="step">1</span>
-                        <div><h2>Cliente</h2><p class="panel-copy">¿A quién corresponde esta venta?</p></div>
-                    </div>
-                    <div class="field">
-                        <label for="{{ form.cliente.id_for_label }}">Cliente</label>
-                        {{ form.cliente }}
-                        {% if form.cliente.errors %}<small class="errorlist">{{ form.cliente.errors|striptags }}</small>{% endif %}
-                    </div>
-                </section>
-
-                <section class="panel form-panel">
-                    <div class="section-title">
-                        <span class="step">2</span>
-                        <div><h2>Bolsa de compras</h2><p class="panel-copy">Selecciona productos y cantidades.</p></div>
-                    </div>
-                    {{ formset.management_form }}
-                    {% for f in formset %}
-                        <div class="detail-row">
-                            <div class="detail-grid">
-                                <div class="field">
-                                    <label for="{{ f.producto.id_for_label }}">Producto</label>
-                                    {{ f.producto }}
-                                    {% if f.producto.errors %}<small class="errorlist">{{ f.producto.errors|striptags }}</small>{% endif %}
-                                </div>
-                                <div class="field">
-                                    <label for="{{ f.cantidad.id_for_label }}">Cantidad</label>
-                                    {{ f.cantidad }}
-                                    {% if f.cantidad.errors %}<small class="errorlist">{{ f.cantidad.errors|striptags }}</small>{% endif %}
-                                </div>
-                            </div>
-                            <div class="hidden-field">{{ f.precio_unitario }}</div>
-                            {% if es_edicion and f.DELETE %}
-                                <label class="delete-row">{{ f.DELETE }} Eliminar este detalle</label>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                </section>
-
-                <div class="form-actions">
-                    <a href="{% url 'lista_ventas' %}" class="btn btn-light">Cancelar</a>
-                    <button type="submit" class="btn btn-primary">{% if es_edicion %}Guardar cambios{% else %}Guardar venta{% endif %}</button>
-                </div>
-            </form>
-        </main>
-        <footer class="store-footer">
-            <div class="footer-brand">
-                <span class="footer-bag"><span class="bag-handle"></span><span class="bag-body">PN</span></span>
-                <span><strong>Punto Norte Market</strong><small>Tu tienda, más simple</small></span>
-            </div>
-            <div class="footer-links">
-                <a href="{% url 'lista_ventas' %}">Ventas</a>
-                <a href="{% url 'reporte_ventas' %}">Reportes</a>
-                <a href="/admin/" target="_blank" rel="noopener">Administración</a>
-            </div>
-            <p>© 2026 Punto Norte Market · Registro de pedidos</p>
-        </footer>
-    </div>
+<div class="shell">
+    <header class="topbar">
+        <a href="{% url 'lista_ventas' %}" class="brand"><span class="brand-mark"><span class="bag-handle"></span><span class="bag-body">PN</span></span><span class="brand-copy"><strong>Punto Norte Market</strong><span>Tu tienda, más simple</span></span></a>
+        <nav class="topnav"><a href="{% url 'lista_ventas' %}" class="active">Ventas</a><a href="{% url 'reporte_ventas' %}">Reportes</a></nav>
+    </header>
+    <main class="page">
+        <div class="page-head"><div class="title-block"><span class="eyebrow">{% if es_edicion %}Actualizar pedido{% else %}Nueva compra{% endif %}</span><h1>{% if es_edicion %}Editar pedido #{{ venta.id }}{% else %}Crear pedido{% endif %}</h1><p class="lead">Completa los datos del cliente y agrega los productos.</p></div><a href="{% url 'lista_ventas' %}" class="btn btn-light">← Volver</a></div>
+        {% if messages %}{% for message in messages %}<div class="flash error" role="alert">{{ message }}</div>{% endfor %}{% endif %}
+        <form method="post" class="form-layout">{% csrf_token %}
+            <section class="panel form-panel"><div class="section-title"><span class="step">1</span><div><h2>Cliente</h2><p class="panel-copy">¿A quién corresponde esta venta?</p></div></div><div class="field"><label for="{{ form.cliente.id_for_label }}">Cliente</label>{{ form.cliente }}{% if form.cliente.errors %}<small class="errorlist">{{ form.cliente.errors|striptags }}</small>{% endif %}</div></section>
+            <section class="panel form-panel"><div class="section-title"><span class="step">2</span><div><h2>Bolsa de compras</h2><p class="panel-copy">Selecciona productos y cantidades.</p></div></div>{{ formset.management_form }}{% for f in formset %}<div class="detail-row"><div class="detail-grid"><div class="field"><label for="{{ f.producto.id_for_label }}">Producto</label>{{ f.producto }}{% if f.producto.errors %}<small class="errorlist">{{ f.producto.errors|striptags }}</small>{% endif %}</div><div class="field"><label for="{{ f.cantidad.id_for_label }}">Cantidad</label>{{ f.cantidad }}{% if f.cantidad.errors %}<small class="errorlist">{{ f.cantidad.errors|striptags }}</small>{% endif %}</div></div><div class="hidden-field">{{ f.id }}{{ f.precio_unitario }}</div>{% if es_edicion and f.DELETE %}<label class="delete-row">{{ f.DELETE }} Eliminar este detalle</label>{% endif %}</div>{% endfor %}</section>
+            <div class="form-actions"><a href="{% url 'lista_ventas' %}" class="btn btn-light">Cancelar</a><button type="submit" class="btn btn-primary">{% if es_edicion %}Guardar cambios{% else %}Guardar venta{% endif %}</button></div>
+        </form>
+    </main>
+    <footer class="store-footer"><div class="footer-brand"><span class="footer-bag"><span class="bag-handle"></span><span class="bag-body">PN</span></span><span><strong>Punto Norte Market</strong><small>Tu tienda, más simple</small></span></div><div class="footer-links"><a href="{% url 'lista_ventas' %}">Ventas</a><a href="{% url 'reporte_ventas' %}">Reportes</a><a href="/admin/" target="_blank" rel="noopener">Administración</a></div><p>© 2026 Punto Norte Market · Registro de pedidos</p></footer>
+</div>
 </body>
 </html>

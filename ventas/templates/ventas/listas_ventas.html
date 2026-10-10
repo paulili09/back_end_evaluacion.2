@@ -9,112 +9,81 @@
     <link rel="stylesheet" href="{% static 'ventas/app.css' %}">
 </head>
 <body>
-    <div class="shell">
-        <header class="topbar">
-            <a href="{% url 'lista_ventas' %}" class="brand" aria-label="Inicio Punto Norte">
-                <span class="brand-mark" aria-hidden="true"><span class="bag-handle"></span><span class="bag-body">PN</span></span>
-                <span class="brand-copy"><strong>Punto Norte Market</strong><span>Tu tienda, más simple</span></span>
-            </a>
-            <nav class="topnav" aria-label="Navegación principal">
-                <a href="{% url 'lista_ventas' %}" class="active" aria-current="page">Ventas</a>
-                <a href="{% url 'reporte_ventas' %}">Reportes</a>
-            </nav>
-        </header>
-
-        <main class="page">
-            <div class="page-head">
-                <div class="title-block">
-                    <span class="eyebrow">Tu tienda en un solo lugar</span>
-                    <h1>Historial de compras</h1>
-                    <p class="lead">Administra tus ventas, revisa tus pedidos recientes y mantén tu negocio bajo control.</p>
-                </div>
-                <div class="actions">
-                    <a href="{% url 'reporte_ventas' %}" class="btn btn-light">Ver reportes</a>
-                    <a href="/admin/" target="_blank" rel="noopener" class="btn btn-admin"><span class="admin-icon">⚙</span> Admin</a>
-                    <a href="{% url 'crear_venta' %}" class="btn btn-primary"><span class="btn-bag">+</span> Nueva compra</a>
-                </div>
+<div class="shell">
+    <header class="topbar">
+        <a href="{% url 'lista_ventas' %}" class="brand">
+            <span class="brand-mark" aria-hidden="true"><span class="bag-handle"></span><span class="bag-body">PN</span></span>
+            <span class="brand-copy"><strong>Punto Norte Market</strong><span>Tu tienda, más simple</span></span>
+        </a>
+        <nav class="topnav" aria-label="Navegación principal">
+            <a href="{% url 'lista_ventas' %}" class="active">Ventas</a>
+            <a href="{% url 'reporte_ventas' %}">Reportes</a>
+        </nav>
+    </header>
+    <main class="page">
+        <div class="page-head">
+            <div class="title-block">
+                <span class="eyebrow">Tu tienda en un solo lugar</span>
+                <h1>Historial de compras</h1>
+                <p class="lead">Administra tus ventas y mantén tu negocio bajo control.</p>
             </div>
-
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="flash{% if message.tags == 'error' %} error{% endif %}" role="alert">{{ message }}</div>
-                {% endfor %}
+            <div class="actions">
+                <a href="{% url 'reporte_ventas' %}" class="btn btn-light">Ver reportes</a>
+                <a href="/admin/" target="_blank" rel="noopener" class="btn btn-admin">⚙ Admin</a>
+                <a href="{% url 'crear_venta' %}" class="btn btn-primary">+ Nueva compra</a>
+            </div>
+        </div>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="flash{% if message.tags == 'error' %} error{% endif %}" role="alert">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        <form method="get" class="filterbar" aria-label="Filtrar ventas por fechas">
+            <div class="field"><label for="fecha_inicio">Desde</label><input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio }}"></div>
+            <div class="field"><label for="fecha_fin">Hasta</label><input type="date" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin }}"></div>
+            <div class="actions"><button type="submit" class="btn btn-dark">Filtrar resultados</button><a href="{% url 'lista_ventas' %}" class="btn btn-light">Limpiar</a></div>
+        </form>
+        <section class="panel" aria-labelledby="ventas-titulo">
+            <div class="panel-head">
+                <div><h2 id="ventas-titulo">Pedidos registrados</h2><p>Mostrando tus compras más recientes primero.</p></div>
+                <span class="eyebrow">PÁGINA {{ ventas.number }} / {{ ventas.paginator.num_pages }}</span>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>ID</th><th>Cliente</th><th>Fecha</th><th>Total</th><th>Acciones</th></tr></thead>
+                    <tbody>
+                    {% for venta in ventas %}
+                        <tr>
+                            <td class="sale-id">#{{ venta.id }}</td>
+                            <td class="client">{{ venta.cliente|default_if_none:"Cliente General" }}</td>
+                            <td class="date">{{ venta.fecha|date:"d/m/Y H:i" }}</td>
+                            <td class="money">${{ venta.total }}</td>
+                            <td><div class="row-actions"><a href="{% url 'editar_venta' venta.pk %}" class="btn btn-small btn-light">Editar</a><a href="{% url 'eliminar_venta' venta.pk %}" class="btn btn-small btn-danger">Eliminar</a></div></td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="5" class="empty"><strong>No hay ventas registradas</strong>Usa “Nueva compra” para agregar la primera operación.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if ventas.has_other_pages %}
+            <div class="pagination">
+                {% if ventas.has_previous %}<a href="?page={{ ventas.previous_page_number }}&fecha_inicio={{ fecha_inicio }}&fecha_fin={{ fecha_fin }}">← Anterior</a>{% else %}<span></span>{% endif %}
+                <span>Página {{ ventas.number }} de {{ ventas.paginator.num_pages }}</span>
+                {% if ventas.has_next %}<a href="?page={{ ventas.next_page_number }}&fecha_inicio={{ fecha_inicio }}&fecha_fin={{ fecha_fin }}">Siguiente →</a>{% else %}<span></span>{% endif %}
+            </div>
             {% endif %}
-
-            <form method="get" class="filterbar" aria-label="Filtrar ventas por fechas">
-                <div class="field">
-                    <label for="fecha_inicio">Desde</label>
-                    <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio }}">
-                </div>
-                <div class="field">
-                    <label for="fecha_fin">Hasta</label>
-                    <input type="date" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin }}">
-                </div>
-                <div class="actions">
-                    <button type="submit" class="btn btn-dark">Filtrar resultados</button>
-                    <a href="{% url 'lista_ventas' %}" class="btn btn-light">Limpiar</a>
-                </div>
-            </form>
-
-            <section class="panel" aria-labelledby="ventas-titulo">
-                <div class="panel-head">
-                    <div>
-                        <h2 id="ventas-titulo">Pedidos registrados</h2>
-                        <p>Mostrando tus compras más recientes primero.</p>
-                    </div>
-                    <span class="eyebrow">PÁGINA {{ ventas.number }} / {{ ventas.paginator.num_pages }}</span>
-                </div>
-                <div class="table-wrap">
-                    <table>
-                        <thead>
-                            <tr><th scope="col">ID</th><th scope="col">Cliente</th><th scope="col">Fecha</th><th scope="col">Total</th><th scope="col">Acciones</th></tr>
-                        </thead>
-                        <tbody>
-                            {% for venta in ventas %}
-                                <tr>
-                                    <td class="sale-id">#{{ venta.id }}</td>
-                                    <td class="client">{{ venta.cliente|default_if_none:"Cliente General" }}</td>
-                                    <td class="date">{{ venta.fecha|date:"d/m/Y H:i" }}</td>
-                                    <td class="money">${{ venta.total }}</td>
-                                    <td>
-                                        <div class="row-actions">
-                                            <a href="{% url 'editar_venta' venta.pk %}" class="btn btn-small btn-light">Editar</a>
-                                            <a href="{% url 'eliminar_venta' venta.pk %}" class="btn btn-small btn-danger">Eliminar</a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            {% empty %}
-                                <tr><td colspan="5" class="empty"><strong>No hay ventas registradas</strong>Usa “Registrar venta” para agregar la primera operación.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% if ventas.has_other_pages %}
-                    <div class="pagination">
-                        {% if ventas.has_previous %}<a href="?page={{ ventas.previous_page_number }}&fecha_inicio={{ fecha_inicio }}&fecha_fin={{ fecha_fin }}">← Anterior</a>{% else %}<span></span>{% endif %}
-                        <span>Página {{ ventas.number }} de {{ ventas.paginator.num_pages }}</span>
-                        {% if ventas.has_next %}<a href="?page={{ ventas.next_page_number }}&fecha_inicio={{ fecha_inicio }}&fecha_fin={{ fecha_fin }}">Siguiente →</a>{% else %}<span></span>{% endif %}
-                    </div>
-                {% endif %}
-            </section>
-
-            <div class="quick-links">
-                <a href="{% url 'reporte_ventas' %}" class="quick-link"><span class="quick-icon">▣</span><span><strong>Reporte de ventas</strong><small>Consulta ventas por rango de fechas</small></span><b>→</b></a>
-                <a href="/admin/" target="_blank" rel="noopener" class="quick-link"><span class="quick-icon">⚙</span><span><strong>Panel administrativo</strong><small>Productos, clientes, stock y ventas</small></span><b>→</b></a>
-            </div>
-        </main>
-        <footer class="store-footer">
-            <div class="footer-brand">
-                <span class="footer-bag"><span class="bag-handle"></span><span class="bag-body">PN</span></span>
-                <span><strong>Punto Norte Market</strong><small>Tu tienda, más simple</small></span>
-            </div>
-            <div class="footer-links">
-                <a href="{% url 'lista_ventas' %}">Ventas</a>
-                <a href="{% url 'reporte_ventas' %}">Reportes</a>
-                <a href="/admin/" target="_blank" rel="noopener">Administración</a>
-            </div>
-            <p>© 2026 Punto Norte Market · Sistema de control de ventas</p>
-        </footer>
-    </div>
+        </section>
+        <div class="quick-links">
+            <a href="{% url 'reporte_ventas' %}" class="quick-link"><span class="quick-icon">▣</span><span><strong>Reporte de ventas</strong><small>Consulta ventas por rango de fechas</small></span><b>→</b></a>
+            <a href="/admin/" target="_blank" rel="noopener" class="quick-link"><span class="quick-icon">⚙</span><span><strong>Panel administrativo</strong><small>Productos, clientes, stock y ventas</small></span><b>→</b></a>
+        </div>
+    </main>
+    <footer class="store-footer">
+        <div class="footer-brand"><span class="footer-bag"><span class="bag-handle"></span><span class="bag-body">PN</span></span><span><strong>Punto Norte Market</strong><small>Tu tienda, más simple</small></span></div>
+        <div class="footer-links"><a href="{% url 'lista_ventas' %}">Ventas</a><a href="{% url 'reporte_ventas' %}">Reportes</a><a href="/admin/" target="_blank" rel="noopener">Administración</a></div>
+        <p>© 2026 Punto Norte Market · Sistema de control de ventas</p>
+    </footer>
+</div>
 </body>
 </html>
