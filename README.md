@@ -41,7 +41,7 @@ ni `.env`; ambos quedan excluidos mediante `.gitignore` y `.vercelignore`.
 Revisa los logs de la función si falla una migración o la conexión a la base
 de datos.
 
-La entrada WSGI para Vercel está en `core/wsgi.py` y la configuración de rutas
+La entrada de Vercel está en `index.py` y la configuración de rutas
 está en `vercel.json`. Después del despliegue, ejecuta las migraciones contra la
 base de datos de producción usando las mismas variables de entorno y verifica
 la URL pública, `/admin/`, los archivos estáticos y los logs de la función.
