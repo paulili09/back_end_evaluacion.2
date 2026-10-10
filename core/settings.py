@@ -32,16 +32,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-t(lp0bv@g#b9z$t@*#m45@tav94_5$k=*kli_wf^%navr9ho^$'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+if not SECRET_KEY:
+    if os.getenv('VERCEL') or os.getenv('DEBUG', 'True').lower() not in ('1', 'true', 'yes'):
+        raise RuntimeError('DJANGO_SECRET_KEY debe estar configurada en producción.')
+    SECRET_KEY = 'django-insecure-local-development-only'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True').lower() in ('1', 'true', 'yes')
 
-ALLOWED_HOSTS = [
-    'back-end-evaluacion-2-kohk.vercel.app',
-    'localhost',
-    '127.0.0.1'
-]
+ALLOWED_HOSTS = [host.strip() for host in os.getenv(
+    'ALLOWED_HOSTS', 'localhost,127.0.0.1'
+).split(',') if host.strip()]
 
 
 # Application definition
@@ -90,16 +92,20 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': db_database,
-        'USER': db_user,
-        'PASSWORD': db_password,
-        'HOST': db_host,
-        'PORT': db_port
+if all((db_database, db_user, db_password, db_host)):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': db_database,
+            'USER': db_user,
+            'PASSWORD': db_password,
+            'HOST': db_host,
+            'PORT': db_port or '5432',
+            'OPTIONS': {'sslmode': os.getenv('DB_SSLMODE', 'require')},
+        }
     }
-}
+else:
+    DATABASES = {'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': BASE_DIR / 'db.sqlite3'}}
 
 
 # Password validation
@@ -136,8 +142,14 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+    if origin.strip()
+]
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration

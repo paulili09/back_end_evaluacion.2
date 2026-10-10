@@ -2,20 +2,35 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Confirmar Eliminación</title>
+    <title>Eliminar pedido | Punto Norte Market</title>
     {% load static %}<link rel="stylesheet" href="{% static 'ventas/app.css' %}">
 </head>
-<body class="container py-5">
-    <div class="card col-md-6 mx-auto">
-        <div class="card-body">
-            <h3 class="card-title text-danger">¿Eliminar Venta #{{ venta.id }}?</h3>
-            <p>Esta acción no se puede deshacer. Cliente: <strong>{{ venta.cliente|default:"Sin nombre" }}</strong></p>
-            <form method="post">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-danger">Sí, eliminar</button>
-                <a href="{% url 'lista_ventas' %}" class="btn btn-secondary">Cancelar</a>
-            </form>
-        </div>
+<body>
+    <div class="shell">
+        <header class="topbar">
+            <a href="{% url 'lista_ventas' %}" class="brand"><span class="brand-mark" aria-hidden="true"><span class="bag-handle"></span><span class="bag-body">PN</span></span><span class="brand-copy"><strong>Punto Norte Market</strong><span>Tu tienda, más simple</span></span></a>
+        </header>
+        <main class="page">
+            <section class="panel confirm">
+                <div class="warning bag-warning"><span class="bag-handle"></span><span class="bag-body">!</span></div>
+                <span class="eyebrow">Zona de seguridad</span>
+                <h2>¿Vaciar este pedido?</h2>
+                <p>Esta acción no se puede deshacer. El pedido #{{ venta.id }} de <strong>{{ venta.cliente|default:"Cliente General" }}</strong> se eliminará de tu historial.</p>
+                <form method="post"><div class="actions">{% csrf_token %}<a href="{% url 'lista_ventas' %}" class="btn btn-light">Conservar pedido</a><button type="submit" class="btn btn-danger">Eliminar pedido</button></div></form>
+            </section>
+        </main>
+        <footer class="store-footer">
+            <div class="footer-brand">
+                <span class="footer-bag"><span class="bag-handle"></span><span class="bag-body">PN</span></span>
+                <span><strong>Punto Norte Market</strong><small>Tu tienda, más simple</small></span>
+            </div>
+            <div class="footer-links">
+                <a href="{% url 'lista_ventas' %}">Ventas</a>
+                <a href="{% url 'reporte_ventas' %}">Reportes</a>
+                <a href="/admin/" target="_blank" rel="noopener">Administración</a>
+            </div>
+            <p>© 2026 Punto Norte Market · Sistema de control de ventas</p>
+        </footer>
     </div>
 </body>
 </html>

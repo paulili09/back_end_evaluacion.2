@@ -37,3 +37,10 @@ python manage.py collectstatic --noinput
 
 En Vercel configura `SECRET_KEY`, `DEBUG=False`, `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS` y las cinco variables de PostgreSQL. Revisa los logs de la función si falla una migración o la conexión a la base de datos.
 
+La entrada WSGI para Vercel está en `api/index.py` y la configuración de rutas
+está en `vercel.json`. Después del despliegue, ejecuta las migraciones contra la
+base de datos de producción usando las mismas variables de entorno y verifica
+la URL pública, `/admin/`, los archivos estáticos y los logs de la función.
+
+La guía de presentación y las evidencias solicitadas están en
+`PRESENTACION_CASO_2.md`.

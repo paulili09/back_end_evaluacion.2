@@ -3,56 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reporte de ventas</title>
-    {% load static %}<link rel="stylesheet" href="{% static 'ventas/app.css' %}">
+    <meta name="description" content="Reporte de ventas por rango de fechas">
+    <title>Reporte de ventas | Punto Norte</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'ventas/app.css' %}">
 </head>
 <body>
-    <main class="container py-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1>Reporte de ventas</h1>
-            <a href="{% url 'lista_ventas' %}" class="btn btn-outline-secondary">Volver</a>
-        </div>
+    <div class="shell">
+        <header class="topbar">
+            <a href="{% url 'lista_ventas' %}" class="brand" aria-label="Volver al historial de ventas">
+                <span class="brand-mark" aria-hidden="true"><span class="bag-handle"></span><span class="bag-body">PN</span></span>
+                <span class="brand-copy">
+                    <strong>Punto Norte Market</strong>
+                    <span>Tu tienda, más simple</span>
+                </span>
+            </a>
+            <nav class="topnav" aria-label="Navegación principal">
+                <a href="{% url 'lista_ventas' %}">Historial</a>
+                <a href="{% url 'reporte_ventas' %}" class="active" aria-current="page">Reportes</a>
+            </nav>
+        </header>
 
-        <form method="get" class="row g-3 mb-4">
-            <div class="col-md-4">
-                <label for="fecha_inicio" class="form-label">Desde</label>
-                <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio }}" class="form-control">
+        <main class="page">
+            <div class="page-head">
+                <div class="title-block">
+                    <span class="eyebrow">Centro de compras</span>
+                    <h1>Reporte de pedidos</h1>
+                    <p class="lead">Consulta el rendimiento de tus ventas y revisa cada operación en el período seleccionado.</p>
+                </div>
+                <div class="actions">
+                    <a href="{% url 'lista_ventas' %}" class="btn btn-light">← Volver al historial</a>
+                </div>
             </div>
-            <div class="col-md-4">
-                <label for="fecha_fin" class="form-label">Hasta</label>
-                <input type="date" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin }}" class="form-control">
+
+            <form method="get" class="filterbar" aria-label="Filtrar reporte por fechas">
+                <div class="field">
+                    <label for="fecha_inicio">Fecha inicial</label>
+                    <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio }}">
+                </div>
+                <div class="field">
+                    <label for="fecha_fin">Fecha final</label>
+                    <input type="date" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin }}">
+                </div>
+                <div class="actions">
+                    <button type="submit" class="btn btn-primary">Generar reporte</button>
+                    <a href="{% url 'reporte_ventas' %}" class="btn btn-light">Limpiar</a>
+                </div>
+            </form>
+
+            {% if error %}
+                <div class="flash error" role="alert">{{ error }}</div>
+            {% endif %}
+
+            <section class="stats" aria-label="Resumen del reporte">
+                <article class="stat">
+                    <span class="stat-label">Pedidos realizados</span>
+                    <strong class="stat-value">{{ cantidad_ventas }}</strong>
+                </article>
+                <article class="stat">
+                    <span class="stat-label">Total comprado</span>
+                    <strong class="stat-value">${{ total }}</strong>
+                </article>
+                <article class="stat">
+                    <span class="stat-label">Período consultado</span>
+                    <strong class="stat-value">
+                        {% if fecha_inicio or fecha_fin %}
+                            {% if fecha_inicio %}{{ fecha_inicio }}{% else %}Inicio{% endif %}
+                            —
+                            {% if fecha_fin %}{{ fecha_fin }}{% else %}Hoy{% endif %}
+                        {% else %}
+                            Todo el historial
+                        {% endif %}
+                    </strong>
+                </article>
+            </section>
+
+            <section class="panel" aria-labelledby="detalle-reporte">
+                <div class="panel-head">
+                    <div>
+                        <h2 id="detalle-reporte">Detalle de operaciones</h2>
+                        <p>Ventas ordenadas desde la más reciente.</p>
+                    </div>
+                    <span class="eyebrow">{{ cantidad_ventas }} registros</span>
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th scope="col">ID</th>
+                                <th scope="col">Cliente</th>
+                                <th scope="col">Fecha</th>
+                                <th scope="col">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for venta in ventas %}
+                                <tr>
+                                    <td class="sale-id">#{{ venta.id }}</td>
+                                    <td class="client">{{ venta.cliente|default_if_none:"Cliente General" }}</td>
+                                    <td class="date">{{ venta.fecha|date:"d/m/Y H:i" }}</td>
+                                    <td class="money">${{ venta.total }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="4" class="empty">
+                                        <strong>No hay ventas para este período</strong>
+                                        Ajusta las fechas para consultar otro rango.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+        <footer class="store-footer">
+            <div class="footer-brand">
+                <span class="footer-bag"><span class="bag-handle"></span><span class="bag-body">PN</span></span>
+                <span><strong>Punto Norte Market</strong><small>Tu tienda, más simple</small></span>
             </div>
-            <div class="col-md-4 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary">Generar reporte</button>
+            <div class="footer-links">
+                <a href="{% url 'lista_ventas' %}">Ventas</a>
+                <a href="{% url 'reporte_ventas' %}">Reportes</a>
+                <a href="/admin/" target="_blank" rel="noopener">Administración</a>
             </div>
-        </form>
-
-        {% if error %}
-            <div class="alert alert-danger">{{ error }}</div>
-        {% endif %}
-
-        <div class="row mb-4">
-            <div class="col-md-6"><div class="card card-body"><strong>Ventas</strong><span>{{ cantidad_ventas }}</span></div></div>
-            <div class="col-md-6"><div class="card card-body"><strong>Total vendido</strong><span>${{ total }}</span></div></div>
-        </div>
-
-        <table class="table table-bordered">
-            <thead class="table-dark">
-                <tr><th>ID</th><th>Cliente</th><th>Fecha</th><th>Total</th></tr>
-            </thead>
-            <tbody>
-                {% for venta in ventas %}
-                    <tr>
-                        <td>#{{ venta.id }}</td>
-                        <td>{{ venta.cliente|default_if_none:"Cliente General" }}</td>
-                        <td>{{ venta.fecha|date:"d/m/Y H:i" }}</td>
-                        <td>${{ venta.total }}</td>
-                    </tr>
-                {% empty %}
-                    <tr><td colspan="4" class="text-center">No hay ventas para el rango seleccionado.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </main>
+            <p>© 2026 Punto Norte Market · Reporte de ventas</p>
+        </footer>
+    </div>
 </body>
 </html>

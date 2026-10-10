@@ -36,9 +36,15 @@ class DetalleVentaForm(forms.ModelForm):
             self.add_error('producto', 'El producto seleccionado no está activo.')
 
         if producto and cantidad and cantidad > producto.stock:
+            if self.instance.pk and self.instance.producto_id == producto.id:
+                cantidad_disponible = producto.stock + self.instance.cantidad
+            else:
+                cantidad_disponible = producto.stock
+            if cantidad <= cantidad_disponible:
+                return cleaned_data
             self.add_error(
                 'cantidad',
-                f'Stock insuficiente. Disponible: {producto.stock}.',
+                f'Stock insuficiente. Disponible: {cantidad_disponible}.',
             )
 
         if producto and not precio_unitario:

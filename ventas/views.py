@@ -3,9 +3,11 @@ from django.contrib import messages
 from django.db import transaction
 from django.forms import inlineformset_factory
 from django.core.paginator import Paginator
+from django.core.exceptions import ValidationError
 from datetime import datetime
 from .models import Venta, DetalleVenta
 from .forms import VentaForm, DetalleVentaForm, BaseDetalleVentaFormSet
+from .stock import actualizar_stock_venta, devolver_stock_venta
 
 DetalleVentaFormSet = inlineformset_factory(
     Venta,
@@ -53,13 +55,23 @@ def guardar_venta(request, venta=None):
         form = VentaForm(request.POST, instance=venta)
         formset = DetalleVentaFormSet(request.POST, instance=venta)
         if form.is_valid() and formset.is_valid():
-            with transaction.atomic():
-                venta = form.save()
-                formset.instance = venta
-                formset.save()
-            accion = 'actualizada' if es_edicion else 'registrada'
-            messages.success(request, f'Venta #{venta.id} {accion} correctamente.')
-            return redirect('lista_ventas')
+            try:
+                with transaction.atomic():
+                    stock_anterior = {}
+                    if venta:
+                        stock_anterior = {
+                            detalle.producto_id: detalle.cantidad
+                            for detalle in venta.detalles.all()
+                        }
+                    venta = form.save()
+                    formset.instance = venta
+                    formset.save()
+                    actualizar_stock_venta(venta, stock_anterior)
+                accion = 'actualizada' if es_edicion else 'registrada'
+                messages.success(request, f'Venta #{venta.id} {accion} correctamente.')
+                return redirect('lista_ventas')
+            except ValidationError as error:
+                messages.error(request, error.messages[0])
         messages.error(request, 'Por favor corrige los errores del formulario.')
     else:
         form = VentaForm(instance=venta)
@@ -110,7 +122,9 @@ def reporte_ventas(request):
 def eliminar_venta(request, pk):
     venta = get_object_or_404(Venta, pk=pk)
     if request.method == 'POST':
-        venta.delete()
+        with transaction.atomic():
+            devolver_stock_venta(venta)
+            venta.delete()
         messages.success(request, f"Venta #{pk} eliminada correctamente.")
         return redirect('lista_ventas')
     return render(request, 'ventas/confirmar_eliminar.html', {'venta': venta})

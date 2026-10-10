@@ -105,3 +105,22 @@ class VentaViewsTest(TestCase):
         detalle = DetalleVenta.objects.get(venta__cliente=self.venta.cliente)
         self.assertEqual(detalle.cantidad, 2)
         self.assertEqual(detalle.precio_unitario, 100000)
+        self.producto.refresh_from_db()
+        self.assertEqual(self.producto.stock, 3)
+
+    def test_eliminar_venta_devuelve_stock(self):
+        detalle = DetalleVenta.objects.create(
+            venta=self.venta,
+            producto=self.producto,
+            cantidad=2,
+        )
+        self.producto.stock -= detalle.cantidad
+        self.producto.save(update_fields=['stock'])
+
+        response = self.client.post(
+            reverse('eliminar_venta', kwargs={'pk': self.venta.id})
+        )
+
+        self.assertRedirects(response, reverse('lista_ventas'))
+        self.producto.refresh_from_db()
+        self.assertEqual(self.producto.stock, 5)

@@ -2,8 +2,10 @@ from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django.forms.models import BaseInlineFormSet
 from django.http import HttpResponse
+from django.db import transaction
 import csv
 from .models import Producto, Cliente, Venta, DetalleVenta
+from .stock import actualizar_stock_venta, devolver_stock_venta
 
 # 1. Branding del espacio Django Admin (Cumple requisito de branding)
 admin.site.site_header = "Control de Ventas — Tienda"
@@ -20,8 +22,14 @@ class DetalleVentaInlineFormSet(BaseInlineFormSet):
                 continue
             prod = form.cleaned_data.get('producto')
             cant = form.cleaned_data.get('cantidad')
-            if prod and cant and cant > prod.stock:
-                raise ValidationError(f"Stock insuficiente para {prod.nombre}. Disponible: {prod.stock}.")
+            if prod and cant:
+                disponible = prod.stock
+                if form.instance.pk and form.instance.producto_id == prod.id:
+                    disponible += form.instance.cantidad
+                if cant > disponible:
+                    raise ValidationError(
+                        f"Stock insuficiente para {prod.nombre}. Disponible: {disponible}."
+                    )
 
 
 # 3. Inline para Detalle de Venta (Cumple requisito de Caso 2)[cite: 1]
@@ -63,6 +71,26 @@ class VentaAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request): 
         return super().get_queryset(request).select_related('cliente')
+
+    def save_formset(self, request, form, formset, change):
+        stock_anterior = {
+            detalle.producto_id: detalle.cantidad
+            for detalle in form.instance.detalles.all()
+        } if change else {}
+        with transaction.atomic():
+            super().save_formset(request, form, formset, change)
+            actualizar_stock_venta(form.instance, stock_anterior)
+
+    def delete_model(self, request, obj):
+        with transaction.atomic():
+            devolver_stock_venta(obj)
+            super().delete_model(request, obj)
+
+    def delete_queryset(self, request, queryset):
+        with transaction.atomic():
+            for venta in queryset.prefetch_related('detalles'):
+                devolver_stock_venta(venta)
+            super().delete_queryset(request, queryset)
 
 
 @admin.register(Producto) 
