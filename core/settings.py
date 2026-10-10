@@ -23,7 +23,6 @@ db_database = os.getenv("database")
 db_user = os.getenv("user")
 db_password = os.getenv("password")
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -32,19 +31,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
-if not SECRET_KEY:
-    if os.getenv('VERCEL') or os.getenv('DEBUG', 'True').lower() not in ('1', 'true', 'yes'):
-        raise RuntimeError('DJANGO_SECRET_KEY debe estar configurada en producción.')
-    SECRET_KEY = 'django-insecure-local-development-only'
+SECRET_KEY = 'django-insecure-*3ro#sp5^id1c4p)gn+39d&eqqfhc1t&izwafckw621el4&#we'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True').lower() in ('1', 'true', 'yes')
-IS_PRODUCTION = not DEBUG
+DEBUG = True
 
-ALLOWED_HOSTS = [host.strip() for host in os.getenv(
-    'ALLOWED_HOSTS', 'localhost,127.0.0.1'
-).split(',') if host.strip()]
+ALLOWED_HOSTS = [
+    'ti3041-p2-c3-2026p-u2-main-1.vercel.app',
+    '*.vercel.app',
+    'pauliortega-django.vercel.app',
+    'localhost',
+    '127.0.0.1'
+]
 
 
 # Application definition
@@ -93,25 +91,16 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
-if all((db_database, db_user, db_password, db_host)):
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': db_database,
-            'USER': db_user,
-            'PASSWORD': db_password,
-            'HOST': db_host,
-            'PORT': db_port or '5432',
-            'OPTIONS': {'sslmode': os.getenv('DB_SSLMODE', 'require')},
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': db_database,
+        'USER': db_user,
+        'PASSWORD': db_password,
+        'HOST': db_host,
+        'PORT': db_port
     }
-else:
-    if IS_PRODUCTION:
-        raise RuntimeError(
-            'En producción debes configurar host, port, database, user y password '
-            'para conectar PostgreSQL/Supabase.'
-        )
-    DATABASES = {'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': BASE_DIR / 'db.sqlite3'}}
+}
 
 
 # Password validation
@@ -148,20 +137,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
-CSRF_TRUSTED_ORIGINS = [
-    origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
-    if origin.strip()
-]
-
-if IS_PRODUCTION:
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
