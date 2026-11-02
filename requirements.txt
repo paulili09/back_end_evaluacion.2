@@ -8,5 +8,5 @@ markdown
 django-filter
 
 djangorestframework-simplejwt
-django-cors-hea
+django-cors-headers
  
