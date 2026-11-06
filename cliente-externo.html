@@ -3,27 +3,149 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Cliente externo API</title>
+    <meta name="description" content="Cliente externo para consumir la API de ventas">
+    <title>API Ventas | Cliente externo</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --background: #08111f;
+            --panel: rgba(15, 29, 49, .88);
+            --panel-light: #142944;
+            --text: #edf5ff;
+            --muted: #9fb3ca;
+            --primary: #67e8f9;
+            --primary-dark: #0e7490;
+            --success: #6ee7b7;
+            --danger: #fda4af;
+            --border: rgba(164, 196, 230, .18);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            color: var(--text);
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at 8% 0%, rgba(14, 116, 144, .45), transparent 34rem),
+                radial-gradient(circle at 95% 100%, rgba(79, 70, 229, .3), transparent 30rem),
+                var(--background);
+        }
+
+        .shell { width: min(1080px, calc(100% - 32px)); margin: 0 auto; padding: 48px 0; }
+
+        .header { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 32px; }
+        .eyebrow {
+            display: inline-flex; align-items: center; gap: 8px; margin: 0 0 12px;
+            color: var(--primary); font-size: .78rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
+        }
+        .eyebrow::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--success); box-shadow: 0 0 16px var(--success); }
+        h1 { margin: 0; font-size: clamp(2rem, 5vw, 3.5rem); letter-spacing: -.05em; line-height: 1.05; }
+        .intro { max-width: 600px; margin: 14px 0 0; color: var(--muted); line-height: 1.65; }
+        .badge { padding: 9px 13px; border: 1px solid var(--border); border-radius: 999px; color: var(--muted); font-size: .84rem; white-space: nowrap; }
+
+        .grid { display: grid; grid-template-columns: minmax(280px, .75fr) minmax(0, 1.25fr); gap: 20px; }
+        .card { border: 1px solid var(--border); border-radius: 22px; background: var(--panel); box-shadow: 0 24px 70px rgba(0, 0, 0, .24); backdrop-filter: blur(18px); }
+        .card-header { padding: 24px 24px 0; }
+        .card-header h2 { margin: 0; font-size: 1.15rem; }
+        .card-header p { margin: 8px 0 0; color: var(--muted); font-size: .9rem; line-height: 1.5; }
+        form { display: grid; gap: 17px; padding: 24px; }
+        label { display: grid; gap: 8px; color: var(--muted); font-size: .82rem; font-weight: 700; }
+        input {
+            width: 100%; padding: 13px 14px; border: 1px solid var(--border); border-radius: 11px;
+            outline: none; color: var(--text); background: rgba(5, 15, 28, .72); font: inherit; transition: border-color .2s, box-shadow .2s;
+        }
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(103, 232, 249, .14); }
+        button {
+            margin-top: 5px; padding: 14px 18px; border: 0; border-radius: 11px; color: #04202c;
+            background: linear-gradient(135deg, var(--primary), #a5f3fc); font: inherit; font-weight: 800; cursor: pointer;
+            transition: transform .2s, box-shadow .2s, opacity .2s;
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(103, 232, 249, .2); }
+        button:disabled { cursor: wait; opacity: .65; transform: none; }
+
+        .status { display: flex; align-items: center; gap: 10px; min-height: 28px; margin: 0 24px 24px; padding: 11px 13px; border-radius: 10px; color: var(--muted); background: rgba(255,255,255,.04); font-size: .88rem; }
+        .status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #64748b; }
+        .status.success { color: var(--success); background: rgba(110, 231, 183, .08); }
+        .status.success::before { background: var(--success); }
+        .status.error { color: var(--danger); background: rgba(253, 164, 175, .08); }
+        .status.error::before { background: var(--danger); }
+
+        .result-card { min-height: 100%; overflow: hidden; }
+        .result-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 24px; border-bottom: 1px solid var(--border); }
+        .result-top h2 { margin: 0; font-size: 1.15rem; }
+        .method { padding: 5px 9px; border-radius: 6px; color: var(--success); background: rgba(110, 231, 183, .1); font-size: .72rem; font-weight: 800; letter-spacing: .08em; }
+        pre { min-height: 280px; max-height: 500px; margin: 0; padding: 24px; overflow: auto; color: #c7f9ff; background: rgba(3, 10, 20, .58); font: .85rem/1.7 "Cascadia Code", Consolas, monospace; white-space: pre-wrap; word-break: break-word; }
+        .hint { margin: 0; padding: 16px 24px; color: var(--muted); font-size: .8rem; line-height: 1.5; }
+        footer { margin-top: 24px; color: var(--muted); font-size: .8rem; text-align: center; }
+
+        @media (max-width: 760px) {
+            .shell { padding: 28px 0; }
+            .header { display: block; }
+            .badge { display: inline-block; margin-top: 18px; }
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
-    <h1>Cliente externo</h1>
-    <form id="login">
-        <label>API <input id="api" value="https://back-end-evaluacion-2.vercel.app" required></label>
-        <label>Usuario <input id="username" required></label>
-        <label>Contraseña <input id="password" type="password" required></label>
-        <button>Obtener token y consultar productos</button>
-    </form>
-    <p id="status"></p>
-    <pre id="result"></pre>
+    <main class="shell">
+        <header class="header">
+            <div>
+                <p class="eyebrow">Cliente externo · CORS + JWT</p>
+                <h1>Panel de acceso a la API</h1>
+                <p class="intro">Autentícate desde este sitio independiente y consulta los productos publicados por tu API REST.</p>
+            </div>
+            <span class="badge">● Conexión segura</span>
+        </header>
+
+        <section class="grid">
+            <article class="card">
+                <div class="card-header">
+                    <h2>Iniciar sesión</h2>
+                    <p>Se solicitará un token JWT para consultar el endpoint protegido.</p>
+                </div>
+                <form id="login">
+                    <label for="api">URL de la API
+                        <input id="api" value="https://back-end-evaluacion-2-ydrr.vercel.app" required>
+                    </label>
+                    <label for="username">Usuario
+                        <input id="username" autocomplete="username" placeholder="Tu usuario" required>
+                    </label>
+                    <label for="password">Contraseña
+                        <input id="password" type="password" autocomplete="current-password" placeholder="Tu contraseña" required>
+                    </label>
+                    <button id="submit-button" type="submit">Obtener token y consultar</button>
+                </form>
+                <p id="status" class="status" role="status">Esperando credenciales...</p>
+            </article>
+
+            <article class="card result-card">
+                <div class="result-top">
+                    <h2>Respuesta de productos</h2>
+                    <span class="method">GET /api/productos/</span>
+                </div>
+                <pre id="result">La respuesta de la API aparecerá aquí.</pre>
+                <p class="hint">Los tokens se usan únicamente durante esta consulta y no se guardan en el navegador.</p>
+            </article>
+        </section>
+        <footer>Cliente externo para demostración de consumo de API REST</footer>
+    </main>
+
     <script>
         const form = document.querySelector("#login");
         const status = document.querySelector("#status");
         const result = document.querySelector("#result");
+        const submitButton = document.querySelector("#submit-button");
 
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
             const api = document.querySelector("#api").value.replace(/\/$/, "");
-            status.textContent = "Conectando...";
+            submitButton.disabled = true;
+            submitButton.textContent = "Conectando...";
+            status.className = "status";
+            status.textContent = "Solicitando token y consultando productos...";
+
             try {
                 const tokenResponse = await fetch(`${api}/api/token/`, {
                     method: "POST",
@@ -44,10 +166,15 @@
                     throw new Error(`Productos rechazados: ${productsResponse.status}`);
                 }
                 result.textContent = JSON.stringify(await productsResponse.json(), null, 2);
-                status.textContent = "CORS y JWT funcionan desde localhost:5173.";
+                status.className = "status success";
+                status.textContent = "Conexión exitosa: CORS y JWT funcionan correctamente.";
             } catch (error) {
+                status.className = "status error";
                 status.textContent = `Error: ${error.message}`;
-                result.textContent = "Revisa CORS_ALLOWED_ORIGINS y la consola del navegador.";
+                result.textContent = "Revisa las credenciales, la URL de la API y CORS_ALLOWED_ORIGINS.";
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = "Obtener token y consultar";
             }
         });
     </script>

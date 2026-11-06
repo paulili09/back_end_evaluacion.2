@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 from pathlib import Path
 
 import os
+from urllib.parse import parse_qs, unquote, urlparse
+
 from dotenv import load_dotenv
 from django.core.exceptions import ImproperlyConfigured
 
@@ -23,11 +25,33 @@ def env_value(name):
     return os.getenv(name) or os.getenv(name.upper())
 
 
-db_host = env_value("host")
-db_port = env_value("port")
-db_database = env_value("database")
-db_user = env_value("user")
-db_password = env_value("password")
+def first_env(*names):
+    for name in names:
+        value = os.getenv(name)
+        if value:
+            return value
+    return None
+
+
+database_url = first_env("DATABASE_URL", "POSTGRES_URL", "SUPABASE_DB_URL")
+if database_url:
+    parsed_database_url = urlparse(database_url)
+    if parsed_database_url.scheme not in {"postgres", "postgresql"}:
+        raise ImproperlyConfigured("DATABASE_URL must use the postgres:// or postgresql:// scheme.")
+    database_query = parse_qs(parsed_database_url.query)
+    db_host = parsed_database_url.hostname
+    db_port = str(parsed_database_url.port or 5432)
+    db_database = parsed_database_url.path.lstrip("/")
+    db_user = unquote(parsed_database_url.username or "")
+    db_password = unquote(parsed_database_url.password or "")
+    db_sslmode = database_query.get("sslmode", ["require"])[0]
+else:
+    db_host = first_env("DB_HOST", "POSTGRES_HOST", "PGHOST", "host", "HOST")
+    db_port = first_env("DB_PORT", "POSTGRES_PORT", "PGPORT", "port", "PORT")
+    db_database = first_env("DB_NAME", "POSTGRES_DATABASE", "POSTGRES_DB", "PGDATABASE", "database", "DATABASE")
+    db_user = first_env("DB_USER", "POSTGRES_USER", "PGUSER", "user", "USER")
+    db_password = first_env("DB_PASSWORD", "POSTGRES_PASSWORD", "PGPASSWORD", "password", "PASSWORD")
+    db_sslmode = first_env("DB_SSLMODE", "POSTGRES_SSLMODE", "PGSSLMODE", "sslmode", "SSLMODE")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -38,7 +62,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", "True").lower() in {"1", "true", "yes"}
+is_vercel = os.getenv("VERCEL", "").lower() in {"1", "true", "yes"}
+DEBUG = os.getenv("DEBUG", "False" if is_vercel else "True").lower() in {"1", "true", "yes"}
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 if not SECRET_KEY:
@@ -132,7 +157,7 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
-use_sqlite = os.getenv("USE_SQLITE", "").lower() in {"1", "true", "yes"}
+use_sqlite = os.getenv("USE_SQLITE", "True" if DEBUG and not is_vercel else "False").lower() in {"1", "true", "yes"}
 
 if all((db_database, db_user, db_password, db_host, db_port)) and not use_sqlite:
     DATABASES = {
@@ -145,6 +170,12 @@ if all((db_database, db_user, db_password, db_host, db_port)) and not use_sqlite
             "PORT": db_port,
         }
     }
+    if db_sslmode:
+        DATABASES["default"]["OPTIONS"] = {"sslmode": db_sslmode}
+elif not DEBUG and not use_sqlite:
+    raise ImproperlyConfigured(
+        "PostgreSQL variables are required when DEBUG=False. Set DATABASE_URL or DB_* variables."
+    )
 else:
     DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "db.sqlite3"}}
 
