@@ -18,11 +18,16 @@ from django.core.exceptions import ImproperlyConfigured
 
 load_dotenv()
 
-db_host = os.getenv("host")
-db_port = os.getenv("port")
-db_database = os.getenv("database")
-db_user = os.getenv("user")
-db_password = os.getenv("password")
+
+def env_value(name):
+    return os.getenv(name) or os.getenv(name.upper())
+
+
+db_host = env_value("host")
+db_port = env_value("port")
+db_database = env_value("database")
+db_user = env_value("user")
+db_password = env_value("password")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -43,7 +48,6 @@ if not SECRET_KEY:
         raise ImproperlyConfigured("DJANGO_SECRET_KEY must be set when DEBUG=False.")
 
 ALLOWED_HOSTS = [
-    'back-end-evaluacion-2-6cg4o08fc-pauli9.vercel.app'
     host.strip()
     for host in os.getenv(
         "ALLOWED_HOSTS",
@@ -51,6 +55,8 @@ ALLOWED_HOSTS = [
     ).split(",")
     if host.strip()
 ]
+if os.getenv("VERCEL_URL") and os.getenv("VERCEL_URL") not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(os.getenv("VERCEL_URL"))
 
 
 # Application definition
