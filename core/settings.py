@@ -48,6 +48,7 @@ if not SECRET_KEY:
         raise ImproperlyConfigured("DJANGO_SECRET_KEY must be set when DEBUG=False.")
 
 ALLOWED_HOSTS = [
+    'back-end-evaluacion-2-ydrr.vercel.app'
     host.strip()
     for host in os.getenv(
         "ALLOWED_HOSTS",

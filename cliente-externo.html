@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cliente externo API</title>
+</head>
+<body>
+    <h1>Cliente externo</h1>
+    <form id="login">
+        <label>API <input id="api" value="https://back-end-evaluacion-2.vercel.app" required></label>
+        <label>Usuario <input id="username" required></label>
+        <label>Contraseña <input id="password" type="password" required></label>
+        <button>Obtener token y consultar productos</button>
+    </form>
+    <p id="status"></p>
+    <pre id="result"></pre>
+    <script>
+        const form = document.querySelector("#login");
+        const status = document.querySelector("#status");
+        const result = document.querySelector("#result");
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const api = document.querySelector("#api").value.replace(/\/$/, "");
+            status.textContent = "Conectando...";
+            try {
+                const tokenResponse = await fetch(`${api}/api/token/`, {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({
+                        username: document.querySelector("#username").value,
+                        password: document.querySelector("#password").value,
+                    }),
+                });
+                if (!tokenResponse.ok) {
+                    throw new Error(`Token rechazado: ${tokenResponse.status}`);
+                }
+                const tokens = await tokenResponse.json();
+                const productsResponse = await fetch(`${api}/api/productos/`, {
+                    headers: {"Authorization": `Bearer ${tokens.access}`},
+                });
+                if (!productsResponse.ok) {
+                    throw new Error(`Productos rechazados: ${productsResponse.status}`);
+                }
+                result.textContent = JSON.stringify(await productsResponse.json(), null, 2);
+                status.textContent = "CORS y JWT funcionan desde localhost:5173.";
+            } catch (error) {
+                status.textContent = `Error: ${error.message}`;
+                result.textContent = "Revisa CORS_ALLOWED_ORIGINS y la consola del navegador.";
+            }
+        });
+    </script>
+</body>
+</html>
