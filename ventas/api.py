@@ -9,22 +9,24 @@ from .serializers import (
 
 
 class ProductoViewSet(viewsets.ModelViewSet):
-    queryset = Producto.objects.all()
+    queryset = Producto.objects.all().order_by("nombre")
     serializer_class = ProductoSerializers
 
 
 class ClienteViewSet(viewsets.ModelViewSet):
-    queryset = Cliente.objects.all()
+    queryset = Cliente.objects.all().order_by("nombre")
     serializer_class = ClienteSerializers
 
 
 class VentaViewSet(viewsets.ModelViewSet):
-    queryset = Venta.objects.all()
+    queryset = Venta.objects.select_related("cliente").prefetch_related(
+        "detalles__producto"
+    ).order_by("-fecha")
     serializer_class = VentaSerializers
 
 
 class DetalleVentaViewSet(viewsets.ModelViewSet):
-    queryset = DetalleVenta.objects.all()
+    queryset = DetalleVenta.objects.select_related("venta", "producto").all()
     serializer_class = DetalleVentaSerializers
 
 

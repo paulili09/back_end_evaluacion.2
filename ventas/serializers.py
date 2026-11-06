@@ -15,12 +15,26 @@ class ClienteSerializers(serializers.ModelSerializer):
 
 
 class VentaSerializers(serializers.ModelSerializer):
+    detalles = serializers.SerializerMethodField()
+    total = serializers.DecimalField(
+        max_digits=10, decimal_places=2, read_only=True
+    )
+
     class Meta:
         model = Venta
-        fields = '__all__'
+        fields = ("id", "cliente", "fecha", "detalles", "total")
+
+    def get_detalles(self, obj):
+        return DetalleVentaSerializers(
+            obj.detalles.select_related("producto"), many=True
+        ).data
 
 
 class DetalleVentaSerializers(serializers.ModelSerializer):
+    subtotal = serializers.DecimalField(
+        max_digits=10, decimal_places=2, read_only=True
+    )
+
     class Meta:
         model = DetalleVenta
-        fields = '__all__'
+        fields = ("id", "venta", "producto", "cantidad", "precio_unitario", "subtotal")

@@ -1,5 +1,8 @@
 from django.test import TestCase
+from django.test import override_settings
 from django.urls import reverse
+from django.contrib.auth import get_user_model
+from rest_framework.test import APIClient
 from .models import Cliente, Producto, Venta, DetalleVenta
 
 
@@ -65,7 +68,7 @@ class VentaViewsTest(TestCase):
         """Verifica que la página principal de lista de ventas responda con código 200."""
         response = self.client.get(reverse('lista_ventas'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'ventas/listas_ventas.html')
+        self.assertTemplateUsed(response, 'ventas/lista_ventas.html')
 
     def test_vista_eliminar_venta(self):
         """Verifica que una venta se elimine correctamente mediante la vista POST."""
@@ -124,3 +127,74 @@ class VentaViewsTest(TestCase):
         self.assertRedirects(response, reverse('lista_ventas'))
         self.producto.refresh_from_db()
         self.assertEqual(self.producto.stock, 5)
+
+
+class ProductoApiTest(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="api-user",
+            password="ClaveSegura123!",
+        )
+        self.client = APIClient()
+
+    def authenticate(self):
+        response = self.client.post(
+            reverse("token_obtain_pair"),
+            {"username": "api-user", "password": "ClaveSegura123!"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {response.data['access']}"
+        )
+
+    def test_api_requiere_jwt(self):
+        response = self.client.get("/api/productos/")
+        self.assertEqual(response.status_code, 401)
+
+    def test_api_permite_crud_con_jwt(self):
+        self.authenticate()
+        producto = {
+            "nombre": "Cámara",
+            "sku": "CAM-001",
+            "precio": "85000.00",
+            "stock": 4,
+            "activo": True,
+        }
+
+        created = self.client.post("/api/productos/", producto, format="json")
+        self.assertEqual(created.status_code, 201)
+        producto_id = created.data["id"]
+
+        updated = self.client.put(
+            f"/api/productos/{producto_id}/",
+            {**producto, "nombre": "Cámara HD"},
+            format="json",
+        )
+        self.assertEqual(updated.status_code, 200)
+        self.assertEqual(updated.data["nombre"], "Cámara HD")
+
+        deleted = self.client.delete(f"/api/productos/{producto_id}/")
+        self.assertEqual(deleted.status_code, 204)
+        self.assertFalse(Producto.objects.filter(pk=producto_id).exists())
+
+    @override_settings(CORS_ALLOWED_ORIGINS=["https://cliente-ejemplo.vercel.app"])
+    def test_cors_permite_origen_configurado(self):
+        response = self.client.options(
+            "/api/productos/",
+            HTTP_ORIGIN="https://cliente-ejemplo.vercel.app",
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD="GET",
+        )
+        self.assertEqual(
+            response.headers["Access-Control-Allow-Origin"],
+            "https://cliente-ejemplo.vercel.app",
+        )
+
+    @override_settings(CORS_ALLOWED_ORIGINS=["https://cliente-ejemplo.vercel.app"])
+    def test_cors_rechaza_origen_no_configurado(self):
+        response = self.client.options(
+            "/api/productos/",
+            HTTP_ORIGIN="https://origen-no-autorizado.example",
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD="GET",
+        )
+        self.assertNotIn("Access-Control-Allow-Origin", response.headers)

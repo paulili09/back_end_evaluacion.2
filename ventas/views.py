@@ -39,7 +39,7 @@ def lista_ventas(request):
     pagina = Paginator(ventas, 10).get_page(request.GET.get("page"))
     return render(
         request,
-        "ventas/listas_ventas.html",
+        "ventas/lista_ventas.html",
         {"ventas": pagina, "fecha_inicio": fecha_inicio, "fecha_fin": fecha_fin, "error": error},
     )
 
@@ -135,3 +135,7 @@ def eliminar_venta(request, pk):
         messages.success(request, f"Venta #{pk} eliminada correctamente.")
         return redirect("lista_ventas")
     return render(request, "ventas/confirmar_eliminar.html", {"venta": venta})
+
+
+def cliente_api(request):
+    return render(request, "ventas/cliente_api.html")

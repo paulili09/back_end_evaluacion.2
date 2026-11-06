@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cliente API | Punto Norte</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'ventas/app.css' %}">
+</head>
+<body>
+<main class="page">
+    <div class="page-head">
+        <div class="title-block">
+            <span class="eyebrow">Cliente consumidor REST</span>
+            <h1>Gestión mediante API</h1>
+            <p class="lead">Autentica con JWT y administra productos, clientes y ventas.</p>
+        </div>
+    </div>
+
+    <section class="panel form-panel">
+        <h2>Autenticación JWT</h2>
+        <form id="login-form" class="form-layout">
+            <div class="field"><label for="username">Usuario</label><input id="username" required autocomplete="username"></div>
+            <div class="field"><label for="password">Contraseña</label><input id="password" type="password" required autocomplete="current-password"></div>
+            <div class="form-actions"><button class="btn btn-primary" type="submit">Obtener token</button></div>
+        </form>
+        <p id="status" role="status" aria-live="polite"><span id="loader" class="loader" hidden aria-label="Cargando"></span></p>
+    </section>
+
+    <section class="panel form-panel">
+        <div class="section-title"><div><h2 id="product-form-title">Crear producto</h2><p class="panel-copy">CRUD de productos mediante la API.</p></div></div>
+        <form id="product-form" class="form-layout">
+            <input id="product-id" type="hidden">
+            <div class="field"><label for="product-name">Nombre</label><input id="product-name" required maxlength="120"></div>
+            <div class="field"><label for="product-sku">SKU</label><input id="product-sku" required maxlength="50"></div>
+            <div class="field"><label for="product-price">Precio</label><input id="product-price" type="number" min="0" step="0.01" required></div>
+            <div class="field"><label for="product-stock">Stock</label><input id="product-stock" type="number" min="0" required></div>
+            <label class="field"><span class="form-label">Estado</span><span><input id="product-active" type="checkbox" checked> Activo</span></label>
+            <div class="form-actions"><button class="btn btn-primary" type="submit" disabled id="save-product">Guardar producto</button><button class="btn btn-light" type="button" id="cancel-product" hidden>Cancelar</button></div>
+        </form>
+    </section>
+    <section class="panel">
+        <div class="panel-head"><div><h2>Productos</h2><p>Listar, editar y eliminar productos.</p></div><button class="btn btn-dark load-resource" data-resource="productos" type="button" disabled>Cargar</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Nombre</th><th>SKU</th><th>Precio</th><th>Stock</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="products"></tbody></table></div>
+    </section>
+
+    <section class="panel form-panel">
+        <div class="section-title"><div><h2 id="client-form-title">Crear cliente</h2><p class="panel-copy">CRUD de clientes mediante la API.</p></div></div>
+        <form id="client-form" class="form-layout">
+            <input id="client-id" type="hidden">
+            <div class="field"><label for="client-name">Nombre</label><input id="client-name" required maxlength="120"></div>
+            <div class="field"><label for="client-email">Correo</label><input id="client-email" type="email"></div>
+            <div class="form-actions"><button class="btn btn-primary" type="submit" disabled id="save-client">Guardar cliente</button><button class="btn btn-light" type="button" id="cancel-client" hidden>Cancelar</button></div>
+        </form>
+    </section>
+    <section class="panel">
+        <div class="panel-head"><div><h2>Clientes</h2><p>Listar, editar y eliminar clientes.</p></div><button class="btn btn-dark load-resource" data-resource="clientes" type="button" disabled>Cargar</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Acciones</th></tr></thead><tbody id="clients"></tbody></table></div>
+    </section>
+
+    <section class="panel form-panel">
+        <div class="section-title"><div><h2 id="sale-form-title">Crear venta</h2><p class="panel-copy">CRUD de ventas mediante la API.</p></div></div>
+        <form id="sale-form" class="form-layout">
+            <input id="sale-id" type="hidden">
+            <div class="field"><label for="sale-client">Cliente</label><select id="sale-client"><option value="">Cliente general</option></select></div>
+            <div class="form-actions"><button class="btn btn-primary" type="submit" disabled id="save-sale">Guardar venta</button><button class="btn btn-light" type="button" id="cancel-sale" hidden>Cancelar</button></div>
+        </form>
+    </section>
+    <section class="panel">
+        <div class="panel-head"><div><h2>Ventas</h2><p>Listar, editar y eliminar ventas.</p></div><button class="btn btn-dark load-resource" data-resource="ventas" type="button" disabled>Cargar</button></div>
+        <div class="table-wrap"><table><thead><tr><th>ID</th><th>Cliente</th><th>Fecha</th><th>Total</th><th>Acciones</th></tr></thead><tbody id="sales"></tbody></table></div>
+    </section>
+
+    <section class="panel form-panel">
+        <div class="section-title"><div><h2 id="detail-form-title">Crear detalle de venta</h2><p class="panel-copy">CRUD de detalles mediante la API.</p></div></div>
+        <form id="detail-form" class="form-layout">
+            <input id="detail-id" type="hidden">
+            <div class="field"><label for="detail-sale">Venta</label><select id="detail-sale" required></select></div>
+            <div class="field"><label for="detail-product">Producto</label><select id="detail-product" required></select></div>
+            <div class="field"><label for="detail-quantity">Cantidad</label><input id="detail-quantity" type="number" min="1" required></div>
+            <div class="field"><label for="detail-price">Precio unitario</label><input id="detail-price" type="number" min="0" step="0.01"></div>
+            <div class="form-actions"><button class="btn btn-primary" type="submit" disabled id="save-detail">Guardar detalle</button><button class="btn btn-light" type="button" id="cancel-detail" hidden>Cancelar</button></div>
+        </form>
+    </section>
+    <section class="panel">
+        <div class="panel-head"><div><h2>Detalles de venta</h2><p>Listar, editar y eliminar detalles.</p></div><button class="btn btn-dark load-resource" data-resource="detalles-venta" type="button" disabled>Cargar</button></div>
+        <div class="table-wrap"><table><thead><tr><th>ID</th><th>Venta</th><th>Producto</th><th>Cantidad</th><th>Subtotal</th><th>Acciones</th></tr></thead><tbody id="details"></tbody></table></div>
+    </section>
+</main>
+<script src="{% static 'ventas/api-client.js' %}"></script>
+</body>
+</html>
