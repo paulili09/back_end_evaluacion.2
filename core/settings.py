@@ -48,18 +48,16 @@ if not SECRET_KEY:
         raise ImproperlyConfigured("DJANGO_SECRET_KEY must be set when DEBUG=False.")
 
 ALLOWED_HOSTS = [
-    'back-end-evaluacion-2-ydrr.vercel.app'
     host.strip()
     for host in os.getenv(
         "ALLOWED_HOSTS",
-        "back-end-evaluacion-2.vercel.app,localhost,127.0.0.1",
         "back-end-evaluacion-2.vercel.app,back-end-evaluacion-2-ydrr.vercel.app,localhost,127.0.0.1",
     ).split(",")
     if host.strip()
+]
 
 if os.getenv("VERCEL_URL") and os.getenv("VERCEL_URL") not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(os.getenv("VERCEL_URL"))
-]
 
 # Application definition
 
