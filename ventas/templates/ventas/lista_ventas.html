@@ -29,6 +29,7 @@
             </div>
             <div class="actions">
                 <a href="{% url 'reporte_ventas' %}" class="btn btn-light">Ver reportes</a>
+                <a href="{% url 'cliente_api' %}" class="btn btn-light">Cliente API</a>
                 <a href="/admin/" target="_blank" rel="noopener" class="btn btn-admin">⚙ Admin</a>
                 <a href="{% url 'crear_venta' %}" class="btn btn-primary">+ Nueva compra</a>
             </div>
@@ -76,6 +77,7 @@
         </section>
         <div class="quick-links">
             <a href="{% url 'reporte_ventas' %}" class="quick-link"><span class="quick-icon">▣</span><span><strong>Reporte de ventas</strong><small>Consulta ventas por rango de fechas</small></span><b>→</b></a>
+            <a href="{% url 'cliente_api' %}" class="quick-link"><span class="quick-icon">API</span><span><strong>Cliente consumidor API</strong><small>Autentica con JWT y administra recursos REST</small></span><b>→</b></a>
             <a href="/admin/" target="_blank" rel="noopener" class="quick-link"><span class="quick-icon">⚙</span><span><strong>Panel administrativo</strong><small>Productos, clientes, stock y ventas</small></span><b>→</b></a>
         </div>
     </main>

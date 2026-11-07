@@ -108,6 +108,10 @@ CSRF_TRUSTED_ORIGINS = [
     if origin.strip()
 ]
 
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:5173",
+    "http://localhost:5173",
+]
 
 ROOT_URLCONF = 'core.urls'
 
@@ -146,7 +150,7 @@ if all((db_database, db_user, db_password, db_host, db_port)) and not use_sqlite
         }
     }
 else:
-    DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "db.sqlite3"}}
+    DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "db.postgresql"}}
 
 
 # Password validation
