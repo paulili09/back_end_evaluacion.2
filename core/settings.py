@@ -146,7 +146,7 @@ if all((db_database, db_user, db_password, db_host, db_port)) and not use_sqlite
         }
     }
 else:
-    DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "db.postgresql"}}
+    DATABASES = {"default": {"ENGINE": "django.db.backends.postgresql", "NAME": BASE_DIR / "db.postgresql"}}
 
 
 # Password validation
