@@ -26,9 +26,10 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-Con las variables PostgreSQL vacías se utiliza SQLite local. Para Supabase, completa las variables del archivo `.env`.
-Para forzar SQLite en una máquina que ya tenga variables PostgreSQL configuradas,
-usa `USE_SQLITE=True`.
+La aplicación utiliza PostgreSQL en todos los entornos. Copia `.env.example` a
+`.env` y completa `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` y
+`DB_SSLMODE`. También puedes configurar una única variable `DATABASE_URL` con
+una URL `postgresql://...`.
 
 ## API REST
 
@@ -78,8 +79,8 @@ python manage.py collectstatic --noinput
 ```
 
 En Vercel configura `DJANGO_SECRET_KEY`, `DEBUG=False`, `ALLOWED_HOSTS`,
-`CSRF_TRUSTED_ORIGINS`, `CORS_ALLOWED_ORIGINS` y las cinco variables de
-PostgreSQL. No subas `.venv/`
+`CSRF_TRUSTED_ORIGINS`, `CORS_ALLOWED_ORIGINS` y las variables de PostgreSQL
+(`DATABASE_URL` o las variables `DB_*`). No subas `.venv/`
 ni `.env`; ambos quedan excluidos mediante `.gitignore` y `.vercelignore`.
 Con `DEBUG=False` se activan HTTPS, HSTS, cookies seguras, protección
 `nosniff` y una política de referencia restrictiva.

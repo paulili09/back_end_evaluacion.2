@@ -57,8 +57,8 @@ Para la presentación se deben mostrar capturas o una demostración de:
 
 ## 6. Configuración técnica
 
-- Django con SQLite para desarrollo local.
-- PostgreSQL/Supabase mediante variables de entorno para producción.
+- Django con PostgreSQL en desarrollo y producción.
+- PostgreSQL/Supabase mediante `DATABASE_URL` o variables `DB_*`.
 - WhiteNoise para archivos estáticos.
 - Variables de entorno para secreto, debug, hosts, CSRF y base de datos.
 - Migraciones versionadas en `ventas/migrations/`.

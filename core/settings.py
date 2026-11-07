@@ -13,15 +13,63 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 from pathlib import Path
 
 import os
+from urllib.parse import parse_qs, unquote, urlparse
+
 from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
 
 load_dotenv()
 
-db_host = os.getenv("host")
-db_port = os.getenv("port")
-db_database = os.getenv("database")
-db_user = os.getenv("user")
-db_password = os.getenv("password")
+
+def env_list(name, default=""):
+    return [value.strip() for value in os.getenv(name, default).split(",") if value.strip()]
+
+
+def env_bool(name, default=False):
+    return os.getenv(name, str(default)).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def database_config():
+    database_url = os.getenv("DATABASE_URL")
+    if database_url:
+        parsed = urlparse(database_url)
+        if parsed.scheme not in {"postgres", "postgresql"} or not parsed.hostname or not parsed.path:
+            raise ImproperlyConfigured(
+                "DATABASE_URL debe ser una URL PostgreSQL válida."
+            )
+
+        query = parse_qs(parsed.query)
+        options = {}
+        if "sslmode" in query:
+            options["sslmode"] = query["sslmode"][0]
+        return {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": unquote(parsed.path.lstrip("/")),
+            "USER": unquote(parsed.username or ""),
+            "PASSWORD": unquote(parsed.password or ""),
+            "HOST": parsed.hostname,
+            "PORT": str(parsed.port or 5432),
+            "OPTIONS": options,
+        }
+
+    values = {
+        "NAME": os.getenv("DB_NAME") or os.getenv("database"),
+        "USER": os.getenv("DB_USER") or os.getenv("user"),
+        "PASSWORD": os.getenv("DB_PASSWORD") or os.getenv("password"),
+        "HOST": os.getenv("DB_HOST") or os.getenv("host") or "localhost",
+        "PORT": os.getenv("DB_PORT") or os.getenv("port") or "5432",
+    }
+    missing = [key for key in ("NAME", "USER", "PASSWORD") if not values[key]]
+    if missing:
+        raise ImproperlyConfigured(
+            "Faltan variables de PostgreSQL: "
+            + ", ".join(f"DB_{key}" for key in missing)
+        )
+
+    sslmode = os.getenv("DB_SSLMODE") or os.getenv("sslmode") or "prefer"
+    values["OPTIONS"] = {"sslmode": sslmode}
+    values["ENGINE"] = "django.db.backends.postgresql"
+    return values
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -31,16 +79,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-*3ro#sp5^id1c4p)gn+39d&eqqfhc1t&izwafckw621el4&#we'
+SECRET_KEY = os.getenv(
+    "DJANGO_SECRET_KEY",
+    "django-insecure-development-only-change-this-secret",
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env_bool("DEBUG", default=True)
 
-ALLOWED_HOSTS = [
-    'back-end-evaluacion-2-ydrr.vercel.app',
-    'localhost',
-    '127.0.0.1'
-]
+ALLOWED_HOSTS = env_list(
+    "ALLOWED_HOSTS",
+    "back-end-evaluacion-2-ydrr.vercel.app,localhost,127.0.0.1",
+)
 
 
 # Application definition
@@ -78,7 +128,12 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',    )
 }
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS", "http://localhost:5173")
+CORS_ALLOW_ALL_ORIGINS = False
+CSRF_TRUSTED_ORIGINS = env_list(
+    "CSRF_TRUSTED_ORIGINS",
+    "http://localhost:8000",
+)
 
 ROOT_URLCONF = 'core.urls'
 
@@ -103,16 +158,7 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': db_database,
-        'USER': db_user,
-        'PASSWORD': db_password,
-        'HOST': db_host,
-        'PORT': db_port
-    }
-}
+DATABASES = {"default": database_config()}
 
 
 # Password validation
