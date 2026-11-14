@@ -70,6 +70,12 @@ class VentaViewsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'ventas/lista_ventas.html')
 
+    def test_cliente_externo_se_sirve_desde_la_raiz(self):
+        response = self.client.get(reverse("cliente_externo"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "text/html; charset=utf-8")
+        self.assertContains(response, "Panel de acceso a la API")
+
     def test_vista_eliminar_venta(self):
         """Verifica que una venta se elimine correctamente mediante la vista POST."""
         url = reverse('eliminar_venta', kwargs={'pk': self.venta.id})

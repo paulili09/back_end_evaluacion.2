@@ -134,13 +134,18 @@
 
     <script>
         const form = document.querySelector("#login");
+        const apiInput = document.querySelector("#api");
         const status = document.querySelector("#status");
         const result = document.querySelector("#result");
         const submitButton = document.querySelector("#submit-button");
 
+        if (["localhost", "127.0.0.1"].includes(window.location.hostname)) {
+            apiInput.value = window.location.origin;
+        }
+
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
-            const api = document.querySelector("#api").value.replace(/\/$/, "");
+            const api = apiInput.value.replace(/\/$/, "");
             submitButton.disabled = true;
             submitButton.textContent = "Conectando...";
             status.className = "status";

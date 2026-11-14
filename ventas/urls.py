@@ -13,4 +13,5 @@ urlpatterns = [
         name='eliminar_venta',
     ),
     path("cliente-api/", views.cliente_api, name="cliente_api"),
+    path("cliente-externo.html", views.cliente_externo, name="cliente_externo"),
 ]

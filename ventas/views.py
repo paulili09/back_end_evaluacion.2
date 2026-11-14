@@ -6,6 +6,8 @@ from django.core.paginator import Paginator
 from django.db import transaction
 from django.forms import inlineformset_factory
 from django.shortcuts import get_object_or_404, redirect, render
+from django.http import FileResponse
+from pathlib import Path
 
 from .forms import BaseDetalleVentaFormSet, DetalleVentaForm, VentaForm
 from .models import DetalleVenta, Venta
@@ -139,3 +141,8 @@ def eliminar_venta(request, pk):
 
 def cliente_api(request):
     return render(request, "ventas/cliente_api.html")
+
+
+def cliente_externo(request):
+    cliente_path = Path(__file__).resolve().parent.parent / "cliente-externo.html"
+    return FileResponse(cliente_path.open("rb"), content_type="text/html; charset=utf-8")
