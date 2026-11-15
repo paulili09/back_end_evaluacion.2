@@ -85,7 +85,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-clave-temporal-para-evaluacion-12345")
 
 # DEBUG queda apagado por defecto; solo se enciende si lo pides en el .env
-DEBUG = env_bool("DEBUG", default=False)
+DEBUG = env_bool("DEBUG", default=os.getenv("VERCEL") != "1")
 
 ALLOWED_HOSTS = env_list(
     "ALLOWED_HOSTS",
@@ -119,6 +119,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+if DEBUG:
+    MIDDLEWARE.remove('whitenoise.middleware.WhiteNoiseMiddleware')
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -196,6 +199,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
+WHITENOISE_USE_FINDERS = DEBUG
 
 
 # Email
@@ -208,6 +212,7 @@ MAILERS = {
 }
 
 #Seguridad para producción
+SECURE_SSL_REDIRECT = False
 if not DEBUG and os.getenv("VERCEL") == "1" and "test" not in sys.argv:
     SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
